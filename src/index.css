@@ -1,0 +1,833 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   LIQUID GLASS — optical tokens.
+   Pointer-driven environment light lives in --gx / --gy (0..1).
+   ============================================================ */
+:root {
+  --gx: 0.5;
+  --gy: 0.22;
+
+  /* soft pastel — not stark white */
+  --page-1: #eeecf8;
+  --page-2: #e5ecf6;
+
+  /* pastel environment light sources (soft blue · lavender · violet · white) */
+  --blob-lav: rgba(178, 160, 255, 0.62);
+  --blob-blue: rgba(150, 196, 255, 0.58);
+  --blob-violet: rgba(196, 168, 255, 0.5);
+  --blob-pink: rgba(255, 176, 214, 0.5);
+  --blob-mint: rgba(158, 236, 214, 0.46);
+  --blob-cream: rgba(255, 236, 214, 0.55);
+  --blob-core: rgba(255, 255, 255, 0.55);
+
+  /* glass body — SMOKED (dark-tinted) so panels read as glass on the light bg.
+     Body is a subtle dark tint; edges/highlights stay bright for the glint. */
+  --glass-bg: rgba(34, 38, 62, 0.1);
+  --glass-bg-strong: rgba(34, 38, 62, 0.15);
+  --glass-lite-bg: rgba(34, 38, 62, 0.13);
+  --glass-inner: rgba(34, 38, 62, 0.08);
+  --glass-hi: rgba(255, 255, 255, 0.92);
+  --glass-reflection: rgba(255, 255, 255, 0.5);
+  --glass-blob: rgba(255, 255, 255, 0.45);
+
+  /* optical edges — bright rim light catches the glass edge */
+  --edge-bright: rgba(255, 255, 255, 0.95);
+  --edge-dim: rgba(255, 255, 255, 0.4);
+
+  /* layered shadow palette — soft + diffused (large blur, low opacity) */
+  --sh-contact: rgba(50, 55, 90, 0.12);
+  --sh-ambient: rgba(56, 66, 120, 0.15);
+  --sh-depth: rgba(56, 66, 120, 0.2);
+  --sh-inneredge: rgba(70, 80, 130, 0.14);
+
+  --text: #1a1a1e;
+  --text-soft: #4a4a54;
+  --text-dim: #64646f;
+
+  --accent: #6d5efc;
+  --accent-2: #7aa8ff;
+  --hairline: rgba(20, 20, 40, 0.08);
+}
+
+.dark {
+  /* deep pastel slate — not stark black */
+  --page-1: #16161f;
+  --page-2: #1b1d29;
+
+  --blob-lav: rgba(140, 120, 255, 0.44);
+  --blob-blue: rgba(96, 150, 255, 0.4);
+  --blob-violet: rgba(150, 110, 240, 0.36);
+  --blob-pink: rgba(230, 130, 195, 0.32);
+  --blob-mint: rgba(110, 222, 198, 0.3);
+  --blob-cream: rgba(150, 140, 120, 0.22);
+  --blob-core: rgba(200, 210, 255, 0.16);
+
+  /* cool-tinted, more opaque frosted panels so sections read clearly in dark */
+  --glass-bg: rgba(150, 162, 214, 0.12);
+  --glass-bg-strong: rgba(152, 164, 216, 0.18);
+  --glass-lite-bg: rgba(150, 162, 214, 0.16);
+  --glass-inner: rgba(255, 255, 255, 0.1);
+  --glass-hi: rgba(255, 255, 255, 0.36);
+  --glass-reflection: rgba(255, 255, 255, 0.24);
+  --glass-blob: rgba(255, 255, 255, 0.22);
+
+  --edge-bright: rgba(255, 255, 255, 0.62);
+  --edge-dim: rgba(255, 255, 255, 0.14);
+
+  --sh-contact: rgba(0, 0, 0, 0.32);
+  --sh-ambient: rgba(0, 0, 0, 0.4);
+  --sh-depth: rgba(0, 0, 0, 0.52);
+  --sh-inneredge: rgba(255, 255, 255, 0.05);
+
+  --text: #f3f4f7;
+  --text-soft: #c1c3cd;
+  --text-dim: #888a97;
+
+  --accent: #9a8dff;
+  --accent-2: #8fb4ff;
+  --hairline: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    system-ui, sans-serif;
+  color: var(--text);
+  background: var(--page-1);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  min-height: 100vh;
+  transition: background 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The theme flip happens UNDER the toggle-switch overlay, so the page swaps
+   instantly (no page-wide transition = no paint storm competing with the knob
+   slide). Only the visible overlay + toggle cross-fade, and the body eases. */
+.tswitch-overlay,
+.tswitch,
+.tswitch-label {
+  transition-property: background-color, border-color, color;
+  transition-duration: 500ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+/* Visible keyboard focus on every interactive element (a11y — High) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/* only show the ring for keyboard, never on mouse press */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip-to-content link — appears when focused (nav auto-hides, so this matters) */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 120;
+  transform: translateY(-160%);
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline-offset: 2px;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text-dim) 42%, transparent);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+@layer components {
+  /* ---------- The optical glass surface ----------
+     Layers packed into one element for performance:
+       body tint  → background-color
+       internal highlight + reflection sheen + colour bleed → background-image
+       frost + saturation + brightness → backdrop-filter
+       edge-catch border → ::before (masked gradient)
+       wide ambient reflection (pointer-reactive) → ::after (transform only)
+       contact + ambient + depth + inner-thickness → box-shadow stack
+  */
+  .glass {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--glass-bg);
+    background-image:
+      radial-gradient(
+        135% 100% at 22% 0%,
+        var(--glass-hi) 0%,
+        transparent 42%
+      ),
+      linear-gradient(
+        135deg,
+        var(--glass-reflection) 0%,
+        transparent 30%,
+        transparent 68%,
+        color-mix(in srgb, var(--glass-reflection) 45%, transparent) 100%
+      ),
+      linear-gradient(
+        0deg,
+        color-mix(in srgb, var(--accent) 7%, transparent) 0%,
+        transparent 26%
+      );
+    backdrop-filter: blur(15px) saturate(185%) contrast(103%);
+    -webkit-backdrop-filter: blur(15px) saturate(185%) contrast(103%);
+    border: 1px solid transparent;
+    /* soft, diffused elevation (large blur radius, low opacity) + a bright
+       top-edge inner highlight so the glass catches light along its rim. */
+    box-shadow: 0 2px 6px -3px var(--sh-contact),
+      0 40px 90px -50px var(--sh-depth),
+      inset 0 1.5px 1.5px var(--glass-hi),
+      inset 0 -1px 2px -1px var(--sh-inneredge),
+      inset 0 0 30px -6px var(--glass-reflection);
+  }
+
+  /* edge-catch: brighter at the top-left + bottom-right corners */
+  .glass-sheen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.25px;
+    background: linear-gradient(
+      135deg,
+      var(--edge-bright) 0%,
+      var(--edge-dim) 26%,
+      transparent 50%,
+      var(--edge-dim) 74%,
+      var(--edge-bright) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* wide, soft, diffused reflection that drifts with the pointer.
+     Moved via transform only → composited, no repaint, no lag. */
+  .glass-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      50% 44% at 32% 24%,
+      var(--glass-blob),
+      transparent 68%
+    );
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: -1;
+    /* imperceptibly slow highlight breathe — never a shimmer, just life */
+    animation: sheen-breathe 14s ease-in-out infinite;
+  }
+  .dark .glass-sheen::after {
+    opacity: 0.24;
+    animation-name: sheen-breathe-d;
+  }
+  @keyframes sheen-breathe {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+  @keyframes sheen-breathe-d {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.28;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glass-sheen::after {
+      animation: none;
+    }
+  }
+  /* Pointer-reactive drift only on the big panels — cheap, and where it reads. */
+  .glass.glass-sheen::after {
+    transform: translate3d(
+      calc((var(--gx) - 0.5) * 26px),
+      calc((var(--gy) - 0.5) * 18px),
+      0
+    );
+    transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Panels that sit directly under the cursor (dialogs) opt out of the
+     pointer-reactive drift — a highlight sliding around beneath the pointer
+     reads as a glitch at close range. The static sheen + edge-catch remain. */
+  .glass-nodrift.glass-sheen::after {
+    transform: none;
+    transition: none;
+  }
+
+  .glass-strong {
+    background-color: var(--glass-bg-strong);
+  }
+
+  /* Lightweight glass for NESTED cards/chips/buttons — same optical look
+     (tint, sheen, edge-catch, layered shadow) but NO backdrop-filter pass,
+     since it already floats over a frosted panel. This is the key to smooth
+     scrolling: only top-level panels ever blur the backdrop. */
+  .glass-lite {
+    position: relative;
+    isolation: isolate;
+    background-color: var(--glass-lite-bg);
+    background-image: radial-gradient(
+        135% 100% at 22% 0%,
+        var(--glass-hi) 0%,
+        transparent 44%
+      ),
+      linear-gradient(
+        135deg,
+        var(--glass-reflection) 0%,
+        transparent 32%,
+        transparent 68%,
+        color-mix(in srgb, var(--glass-reflection) 40%, transparent) 100%
+      );
+    border: 1px solid transparent;
+    box-shadow: 0 2px 5px -2px var(--sh-contact),
+      0 10px 26px -16px var(--sh-ambient),
+      inset 0 1px 1.5px var(--glass-hi),
+      inset 0 -1px 2px -1px var(--sh-inneredge);
+  }
+
+  /* Refraction kept as a cheap, non-displacement variant so scrolling stays
+     at frame rate (the displacement filter recomputed the backdrop per frame). */
+  .glass-refract {
+    backdrop-filter: blur(22px) saturate(165%);
+    -webkit-backdrop-filter: blur(22px) saturate(165%);
+  }
+
+  .hairline {
+    border-color: var(--hairline);
+  }
+
+  /* Mobile: lighter frost + shallower shadows → keeps 60fps on phones while
+     preserving the premium look. */
+  @media (max-width: 767px) {
+    .glass {
+      backdrop-filter: blur(11px) saturate(165%);
+      -webkit-backdrop-filter: blur(11px) saturate(165%);
+      box-shadow: 0 2px 6px -3px var(--sh-contact),
+        0 24px 54px -40px var(--sh-depth),
+        inset 0 1.5px 1.5px var(--glass-hi),
+        inset 0 -1px 2px -1px var(--sh-inneredge);
+    }
+    .glass-refract {
+      backdrop-filter: blur(15px) saturate(160%);
+      -webkit-backdrop-filter: blur(15px) saturate(160%);
+    }
+  }
+}
+
+@layer utilities {
+  .text-soft {
+    color: var(--text-soft);
+  }
+  .text-dim {
+    color: var(--text-dim);
+  }
+  .accent {
+    color: var(--accent);
+  }
+
+  /* NOTE: this used `content-visibility: auto` to skip off-screen rendering.
+     That broke interaction — the browser kept each section's subtree in a
+     render-skipped state for HIT-TESTING while still painting it, so cards and
+     buttons were visible but unclickable (no pointer cursor, clicks ignored)
+     until a scroll forced relevance to be re-evaluated. Correctness wins:
+     rendering is no longer skipped. Scroll performance is held up by the
+     other optimisations (glass-lite nested cards, reduced mobile blur,
+     transform/opacity-only animation, code-split WebGL). */
+  .section-cv {
+    contain: layout style; /* safe containment — does not affect hit-testing */
+  }
+
+  .marquee-track {
+    width: max-content;
+    will-change: transform;
+  }
+  .marquee-pause:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  /* Compositor-only float for the hero widgets (replaces JS animation). */
+  .float-y {
+    animation: float-y var(--fd, 8s) ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes float-y {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, calc(var(--fl, 12px) * -1), 0);
+    }
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Very slow ambient-light drift — imperceptible per second, keeps the
+     background from ever looking static. Compositor-only (transform). */
+  .light-drift {
+    animation: light-drift var(--ld, 26s) ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes light-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(var(--ldx, 3%), var(--ldy, -2.5%), 0) scale(1.06);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .light-drift {
+      animation: none;
+    }
+  }
+}
+
+/* ============ WebGL liquid-glass layer (behind all UI) ============ */
+.glass3d {
+  position: fixed;
+  inset: 0;
+  z-index: -1; /* above the pastel background, behind every UI element */
+  pointer-events: none; /* never intercepts clicks / never affects layout */
+}
+.glass3d canvas {
+  display: block;
+}
+
+/* ============ Glass loading screen ============ */
+.preloader {
+  --orbit-t: 2.2s; /* tick speed — slows way down when offline */
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  transform-origin: 50% 50%;
+  /* follows the active theme */
+  background: linear-gradient(180deg, var(--page-1) 0%, var(--page-2) 100%);
+  /* when done, the whole loader rushes OUTWARD (scales up) + fades to fully
+     gone BEFORE the page appears. Ease accelerates outward. */
+  transition: opacity 520ms cubic-bezier(0.6, 0, 0.85, 0.25),
+    transform 620ms cubic-bezier(0.6, 0, 0.85, 0.25),
+    visibility 620ms linear;
+}
+.preloader--gone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* never intercept clicks once the page is revealed */
+}
+
+/* ===== Orbital loader ===== */
+.orbit {
+  color: var(--text); /* every stroke/fill uses currentColor → theme-aware */
+  overflow: visible;
+  width: min(240px, 62vw); /* responsive */
+  height: min(240px, 62vw);
+}
+.orbit-core {
+  fill: currentColor;
+}
+.orbit-bloom {
+  opacity: 0.85;
+}
+.orbit-node {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  opacity: 0.4;
+  animation: orbit-fill var(--orbit-t) linear infinite;
+}
+.orbit-sweep {
+  stroke: currentColor;
+  stroke-width: 1.4;
+  opacity: 0.85;
+  transform-box: view-box;
+  transform-origin: 100px 100px;
+  animation: orbit-spin var(--orbit-t) linear infinite;
+}
+
+/* ===== Offline state — slow ticks + message ===== */
+.preloader--offline {
+  --orbit-t: 6.5s; /* very slow ticks */
+}
+.preloader__stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  padding: 0 26px;
+}
+.preloader__offline {
+  max-width: 340px;
+  text-align: center;
+  color: var(--text);
+  animation: pre-off-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.preloader__offline-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border-radius: 14px;
+  color: var(--accent);
+  background: var(--glass-inner);
+  border: 1px solid var(--glass-border);
+}
+.preloader__offline h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.preloader__offline p {
+  margin-top: 8px;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+@keyframes pre-off-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes orbit-fill {
+  0% {
+    fill: transparent;
+    opacity: 0.4;
+  }
+  5% {
+    fill: currentColor;
+    opacity: 1;
+  }
+  22% {
+    fill: currentColor;
+    opacity: 1;
+  }
+  36% {
+    fill: transparent;
+    opacity: 0.4;
+  }
+  100% {
+    fill: transparent;
+    opacity: 0.4;
+  }
+}
+
+/* At the very top, the navbar drops onto the hero card and they read as one
+   glass card — the card's top corners flatten to meet the navbar's flat bottom.
+   On scroll the navbar detaches into the pill and the card rounds again. */
+/* The floating pill (scrolled state) is more opaque + stronger blur so it
+   reads clearly over any section it passes over. */
+.nav-floating.glass {
+  background-color: rgba(34, 38, 62, 0.22);
+  backdrop-filter: blur(26px) saturate(185%);
+  -webkit-backdrop-filter: blur(26px) saturate(185%);
+}
+.dark .nav-floating.glass {
+  background-color: rgba(150, 162, 214, 0.24);
+}
+
+/* ===== Page reveal when the loader zooms outward ===== */
+.stage {
+  transform-origin: 50% 45%;
+}
+/* The page stays hidden until the loader has fully zoomed out + vanished
+   (~560ms), then calmly appears — so no part of the loader is ever on top
+   of the page. */
+.stage--in {
+  animation: page-reveal 640ms cubic-bezier(0.22, 1, 0.36, 1) 560ms both;
+  will-change: transform, opacity;
+}
+@keyframes page-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* Loader blows up OUTWARD past the screen as it leaves → "zoom out" reveal. */
+.preloader--gone {
+  transform: scale(5);
+}
+
+/* ===== Theme-switch loader: a glass toggle ===== */
+.tswitch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  background-color: var(--page-1);
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tswitch-overlay--gone {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none; /* must never intercept clicks once hidden */
+}
+.tswitch {
+  --tw: min(300px, 82vw);
+  --k: calc(var(--tw) / 2 - 24px);
+  position: relative;
+  width: var(--tw);
+  height: calc(var(--tw) / 2);
+  border-radius: 999px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.16),
+    inset 0 -2px 6px var(--glass-hi), 0 30px 70px -34px var(--glass-shadow);
+}
+.tswitch-ico {
+  position: absolute;
+  top: 50%;
+  z-index: 3; /* icons stay above the sliding knob */
+  display: grid;
+  place-items: center;
+  transition: opacity 0.4s ease;
+}
+/* aligned to the knob's rest centres: ¼ and ¾ of the track width */
+.tswitch-ico--sun {
+  left: 25%;
+  transform: translate(-50%, -50%);
+  color: #f6b73c;
+}
+.tswitch-ico--moon {
+  left: 75%;
+  transform: translate(-50%, -50%);
+  color: #b9c6ff;
+}
+.tswitch[data-dark="false"] .tswitch-ico--moon {
+  opacity: 0.35;
+}
+.tswitch[data-dark="true"] .tswitch-ico--sun {
+  opacity: 0.35;
+}
+.tswitch-knob {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  z-index: 2;
+  width: var(--k);
+  height: var(--k);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle at 38% 32%, #ffffff, #e9edf6 58%, #d6dcec);
+  box-shadow: 0 12px 26px -8px rgba(0, 0, 0, 0.45), inset 0 2px 3px #ffffff,
+    inset 0 -4px 8px rgba(0, 0, 0, 0.12);
+  /* buttery, no overshoot */
+  transition: transform 0.72s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.tswitch[data-dark="true"] .tswitch-knob {
+  transform: translate(calc(var(--tw) - var(--k) - 24px), -50%);
+}
+.tswitch-label {
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: var(--text-soft);
+}
+
+/* ===== Tech stack — billboarded logos orbiting a glass ball ===== */
+.sphere-scene {
+  position: relative;
+  width: min(440px, 84vw);
+  height: min(440px, 84vw);
+  margin-inline: auto;
+}
+.sphere-glass {
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  /* light mode: a smoked, dark-tinted frosted ball so it's clearly visible */
+  background-color: rgba(40, 44, 70, 0.17);
+  background-image: radial-gradient(
+      circle at 34% 28%,
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0.04) 46%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 72% 80%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 56%
+    );
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 2px 30px rgba(255, 255, 255, 0.32),
+    inset -32px -38px 92px rgba(38, 46, 104, 0.42),
+    0 48px 96px -46px var(--sh-depth);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+}
+/* dark mode: keep it a light frosted ball (subtle) */
+.dark .sphere-glass {
+  background-color: rgba(150, 162, 214, 0.08);
+  box-shadow: inset 0 2px 30px rgba(255, 255, 255, 0.22),
+    inset -32px -38px 92px rgba(30, 40, 90, 0.5),
+    0 48px 96px -46px var(--sh-depth);
+}
+/* each logo is a crisp white tile that always faces the viewer (billboard) */
+.tech-tag {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 22px -10px rgba(20, 30, 70, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
+  will-change: transform, opacity, filter;
+}
+.dark .tech-tag {
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.tech-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+}
+.tech-mono {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* typewriter tagline under the ball */
+.typewriter {
+  margin-top: 18px;
+  font-size: clamp(1.05rem, 2.4vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+  text-align: center;
+}
+.tw-word {
+  color: var(--accent);
+  font-weight: 700;
+}
+.tw-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: -0.16em;
+  border-radius: 2px;
+  background: var(--accent);
+  animation: tw-blink 1s steps(1) infinite;
+}
+@keyframes tw-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
