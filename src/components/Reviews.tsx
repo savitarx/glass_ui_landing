@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Star } from "lucide-react";
 import GlassCard from "./GlassCard";
 import SectionHeading from "./SectionHeading";
@@ -76,6 +77,22 @@ function ReviewCard({ r }: { r: (typeof REVIEWS)[number] }) {
 
 export default function Reviews() {
   const loop = [...REVIEWS, ...REVIEWS];
+  const track = useRef<HTMLDivElement>(null);
+
+  /* The marquee runs on EVERY device (it was previously paused wholesale on
+     the low-perf tier, which stopped it on phones). It is only parked while
+     the section is off screen, so it costs nothing when nobody can see it. */
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => el.classList.toggle("marquee-idle", !e.isIntersecting),
+      { rootMargin: "20% 0px 20% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section id="reviews" className="px-4 pt-24 sm:pt-32">
       <GlassCard className="mx-auto max-w-6xl overflow-hidden px-6 py-12 sm:px-12 sm:py-16">
@@ -91,7 +108,7 @@ export default function Reviews() {
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[color:var(--page-2)] to-transparent opacity-70" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[color:var(--page-2)] to-transparent opacity-70" />
             <div className="overflow-hidden">
-              <div className="marquee-track flex animate-marquee">
+              <div ref={track} className="marquee-track flex animate-marquee">
                 {loop.map((r, i) => (
                   <ReviewCard key={i} r={r} />
                 ))}

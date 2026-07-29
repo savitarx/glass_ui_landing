@@ -122,10 +122,23 @@ export default function TechSphere() {
     let ay = 0;
     let raf = 0;
     let visible = true;
+    let last = 0;
 
+    // PERF: the loop is fully stopped when the sphere scrolls away, instead of
+    // ticking every frame just to skip the work. Nothing is scheduled at all
+    // while it is off screen.
     const io = new IntersectionObserver(
       ([e]) => {
-        visible = e.isIntersecting;
+        const now = e.isIntersecting;
+        if (now === visible) return;
+        visible = now;
+        if (visible && !reduce && !raf) {
+          last = 0;
+          raf = requestAnimationFrame(loop);
+        } else if (!visible && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
       },
       { threshold: 0 }
     );
@@ -157,14 +170,27 @@ export default function TechSphere() {
           1
         )}px, ${(y2 * R).toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
         el.style.opacity = (0.28 + depth * 0.72).toFixed(3);
-        el.style.zIndex = String(Math.round(depth * 100));
-        el.style.filter = depth < 0.5 ? `blur(${((0.5 - depth) * 2).toFixed(1)}px)` : "none";
+        // PERF: zIndex is only written when it actually changes — every write
+        // re-sorts the stacking context.
+        const z = String(Math.round(depth * 100));
+        if (el.dataset.z !== z) {
+          el.style.zIndex = z;
+          el.dataset.z = z;
+        }
+        // PERF: a per-tile `filter: blur()` that changed every frame forced a
+        // fresh raster of each back-facing tile, every frame. Depth now reads
+        // from opacity + scale alone, which are pure compositor properties.
       }
     };
 
-    const loop = () => {
-      if (visible) render();
+    // ~30fps is plenty for a slow drift and halves the work of the fastest
+    // loop on the page.
+    const FRAME = 1000 / 30;
+    const loop = (t: number) => {
       raf = requestAnimationFrame(loop);
+      if (t - last < FRAME) return;
+      last = t;
+      render();
     };
     render();
     if (!reduce) raf = requestAnimationFrame(loop);
@@ -178,35 +204,63 @@ export default function TechSphere() {
 
   return (
     <section id="stack" className="px-4 pt-24 sm:pt-32">
-      <div className="mx-auto flex max-w-6xl flex-col items-center">
-        <Reveal>
-          <span
-            className="text-[0.78rem] font-semibold uppercase tracking-[0.22em]"
-            style={{ color: "var(--accent)" }}
-          >
-            Our Stack
-          </span>
-        </Reveal>
-
-        <div ref={sceneRef} className="sphere-scene mt-8">
-          <div className="sphere-glass" aria-hidden />
-          {BASE.map((b, i) => (
-            <div
-              key={b.t.name}
-              ref={(el) => (tiles.current[i] = el)}
-              className="tech-tag"
-              title={b.t.name}
+      {/* Copy on the left, sphere on the right. Stacks to copy-then-sphere on
+          phones, where both are scaled down to sit inside one screen. */}
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-6">
+        {/* ---- Left: typography ---- */}
+        <div className="text-center lg:pr-4 lg:text-left">
+          <Reveal>
+            <span
+              className="text-[0.78rem] font-semibold uppercase tracking-[0.22em]"
+              style={{ color: "var(--accent)" }}
             >
-              <TechIcon t={b.t} />
-            </div>
-          ))}
+              Our Stack
+            </span>
+          </Reveal>
+
+          <Reveal delay={0.06}>
+            <h2 className="mt-4 text-[1.9rem] font-semibold leading-[1.08] tracking-[-0.03em] sm:text-[2.6rem] lg:text-[3.2rem]">
+              The tools behind
+              <br />
+              every build
+            </h2>
+          </Reveal>
+
+          <Reveal delay={0.12}>
+            <p className="mx-auto mt-5 max-w-md text-[0.98rem] leading-relaxed text-soft sm:text-[1.08rem] lg:mx-0">
+              A deliberately small, deeply understood toolkit — chosen so we can
+              move fast without trading away reliability.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.18}>
+            <p className="typewriter">
+              We are professionals in&nbsp;
+              <span className="tw-word">{typed}</span>
+              <span className="tw-caret" aria-hidden />
+            </p>
+          </Reveal>
         </div>
 
-        <p className="typewriter">
-          We are professionals in&nbsp;
-          <span className="tw-word">{typed}</span>
-          <span className="tw-caret" aria-hidden />
-        </p>
+        {/* ---- Right: the glass sphere ---- */}
+        <div className="flex justify-center lg:justify-end">
+          <div ref={sceneRef} className="sphere-scene">
+            <div className="sphere-glass" aria-hidden>
+              <span className="sphere-spec" />
+              <span className="sphere-rim" />
+            </div>
+            {BASE.map((b, i) => (
+              <div
+                key={b.t.name}
+                ref={(el) => (tiles.current[i] = el)}
+                className="tech-tag"
+                title={b.t.name}
+              >
+                <TechIcon t={b.t} />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );

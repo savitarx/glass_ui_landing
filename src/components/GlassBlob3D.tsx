@@ -54,19 +54,24 @@ function Blob({ mobile }: { mobile: boolean }) {
   return (
     <group ref={group}>
       <mesh ref={mesh} scale={mobile ? 1.5 : 2.15}>
-        {/* smooth high-poly sphere → reads as a liquid glass droplet */}
-        <icosahedronGeometry args={[1, 14]} />
+        {/* detail 14 was ~1M triangles for a shape that is always soft and
+            half-hidden behind frosted glass; 6 is visually identical here */}
+        <icosahedronGeometry args={[1, 6]} />
         <MeshTransmissionMaterial
-          samples={mobile ? 3 : 8}
-          resolution={mobile ? 128 : 256}
+          /* `samples` is the dominant cost — each one is another pass over the
+             transmission buffer. 2 is plenty at this blur/scale. */
+          samples={2}
+          resolution={128}
           transmission={1}
           roughness={0.16}
           thickness={1.4}
           ior={1.34}
-          chromaticAberration={0.05}
-          distortion={0.35}
-          distortionScale={0.4}
-          temporalDistortion={0.08}
+          chromaticAberration={0.04}
+          /* distortion/temporalDistortion run noise per-pixel every frame —
+             dropped entirely, the refraction still reads as glass */
+          distortion={0}
+          distortionScale={0}
+          temporalDistortion={0}
           clearcoat={1}
           clearcoatRoughness={0.1}
           attenuationDistance={2.6}
@@ -83,6 +88,37 @@ function Blob({ mobile }: { mobile: boolean }) {
  * Fixed and pointer-events:none, sits BEHIND all UI (see .glass3d). A custom
  * Lightformer environment gives soft, muted reflections — no bright colours.
  */
+/**
+ * Drives the render loop at a capped ~30fps instead of letting R3F render
+ * continuously at 60. Transmission is a multi-pass material, so halving the
+ * frame rate roughly halves its GPU cost — and at this size and blur the
+ * difference is invisible. Rendering also stops entirely when the tab is
+ * hidden, so a backgrounded tab costs nothing.
+ */
+function ThrottledLoop({ fps = 30 }: { fps?: number }) {
+  const { invalidate } = useThree();
+  useEffect(() => {
+    let timer = 0;
+    let stopped = false;
+    const step = () => {
+      if (stopped) return;
+      if (!document.hidden) invalidate();
+      timer = window.setTimeout(step, 1000 / fps);
+    };
+    step();
+    const onVis = () => {
+      if (!document.hidden) invalidate();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [invalidate, fps]);
+  return null;
+}
+
 export default function GlassBlob3D() {
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
@@ -96,13 +132,22 @@ export default function GlassBlob3D() {
   return (
     <div className="glass3d" aria-hidden>
       <Canvas
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-        dpr={mobile ? 1 : [1, 1.6]}
+        /* on-demand: nothing renders unless we explicitly invalidate() */
+        frameloop="demand"
+        gl={{
+          antialias: false, // the blob is soft-edged; MSAA is wasted cost here
+          alpha: true,
+          powerPreference: "low-power",
+          stencil: false,
+          depth: true,
+        }}
+        /* transmission cost scales with pixel count — never go above 1x */
+        dpr={1}
         camera={{ position: [0, 0, 6], fov: 34 }}
       >
         <ambientLight intensity={0.5} />
-        {/* soft studio lighting → premium frosted-glass reflections */}
-        <Environment resolution={mobile ? 128 : 256}>
+        {/* baked once (frames={1}) rather than re-rendered every frame */}
+        <Environment resolution={64} frames={1}>
           <group rotation={[0, 0, 1]}>
             <Lightformer form="rect" intensity={2} position={[-3, 2, 3]} scale={[4, 6, 1]} color="#d3e2ff" />
             <Lightformer form="rect" intensity={1.4} position={[3, -2, 2]} scale={[5, 4, 1]} color="#ded6ff" />
@@ -111,6 +156,7 @@ export default function GlassBlob3D() {
           </group>
         </Environment>
         <Blob mobile={mobile} />
+        <ThrottledLoop fps={30} />
       </Canvas>
     </div>
   );

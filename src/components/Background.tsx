@@ -17,7 +17,7 @@ export default function Background() {
           field feels natural, each drifting on its own very slow cycle. */}
       {/* warm key light, top, pulled off-centre to the left */}
       <div
-        className="light-drift absolute -top-52 left-[38%] h-[60rem] w-[80rem] -translate-x-1/2 rounded-full blur-[130px]"
+        className="light-drift absolute -top-52 left-[38%] h-[60rem] w-[80rem] -translate-x-1/2 rounded-full blur-[58px]"
         style={{
           ["--ld" as string]: "34s",
           ["--ldx" as string]: "-2%",
@@ -28,7 +28,7 @@ export default function Background() {
       />
       {/* lavender, upper-left */}
       <div
-        className="light-drift absolute -top-40 -left-32 h-[52rem] w-[52rem] rounded-full blur-[120px]"
+        className="light-drift absolute -top-40 -left-32 h-[52rem] w-[52rem] rounded-full blur-[54px]"
         style={{
           ["--ld" as string]: "29s",
           ["--ldx" as string]: "3.5%",
@@ -38,7 +38,7 @@ export default function Background() {
       />
       {/* soft blue, upper-right */}
       <div
-        className="light-drift absolute top-[4%] right-[-16%] h-[48rem] w-[48rem] rounded-full blur-[120px]"
+        className="light-drift absolute top-[4%] right-[-16%] h-[48rem] w-[48rem] rounded-full blur-[54px]"
         style={{
           ["--ld" as string]: "31s",
           ["--ldx" as string]: "-3%",
@@ -48,7 +48,7 @@ export default function Background() {
       />
       {/* violet, mid-left, drifting */}
       <div
-        className="light-drift absolute top-[42%] -left-[10%] h-[40rem] w-[40rem] rounded-full blur-[130px]"
+        className="light-drift absolute top-[42%] -left-[10%] h-[40rem] w-[40rem] rounded-full blur-[58px]"
         style={{
           ["--ld" as string]: "37s",
           ["--ldx" as string]: "4%",
@@ -59,7 +59,7 @@ export default function Background() {
       />
       {/* white core glow, off-centre right — the subtle bright anchor */}
       <div
-        className="light-drift absolute top-[30%] right-[16%] h-[30rem] w-[30rem] rounded-full blur-[110px]"
+        className="light-drift absolute top-[30%] right-[16%] h-[30rem] w-[30rem] rounded-full blur-[48px]"
         style={{
           ["--ld" as string]: "24s",
           ["--ldx" as string]: "-2.5%",
@@ -69,7 +69,7 @@ export default function Background() {
       />
       {/* cool reflections, lower band */}
       <div
-        className="light-drift absolute bottom-[-18%] left-[4%] h-[44rem] w-[44rem] rounded-full blur-[130px]"
+        className="light-drift absolute bottom-[-18%] left-[4%] h-[44rem] w-[44rem] rounded-full blur-[58px]"
         style={{
           ["--ld" as string]: "33s",
           ["--ldx" as string]: "3%",
@@ -78,7 +78,7 @@ export default function Background() {
         }}
       />
       <div
-        className="light-drift absolute bottom-[2%] right-[2%] h-[42rem] w-[42rem] rounded-full blur-[130px]"
+        className="light-drift absolute bottom-[2%] right-[2%] h-[42rem] w-[42rem] rounded-full blur-[58px]"
         style={{
           ["--ld" as string]: "28s",
           ["--ldx" as string]: "-3%",

@@ -1,10 +1,13 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import { useLenis } from "./hooks/useLenis";
 import { usePointerGlow } from "./hooks/usePointerGlow";
+import { usePerfTier } from "./hooks/usePerfTier";
 import Background from "./components/Background";
-// three.js is heavy → code-split it out of the initial bundle
-const GlassBlob3D = lazy(() => import("./components/GlassBlob3D"));
+// NOTE: the WebGL version (GlassBlob3D.tsx) is kept in the repo but no longer
+// imported — MeshTransmissionMaterial re-rendered the scene several times per
+// frame and pinned the GPU. AmbientOrb is the CSS equivalent and costs ~nothing.
+import AmbientOrb from "./components/AmbientOrb";
 import GlassFilters from "./components/GlassFilters";
 import Preloader from "./components/Preloader";
 import ThemeSwitch from "./components/ThemeSwitch";
@@ -22,6 +25,8 @@ function Shell() {
   const { loading, switching, theme } = useTheme();
   useLenis();
   usePointerGlow();
+  // sets <html data-perf="high|low"> — CSS uses it to drop the costly blurs
+  usePerfTier();
 
   // Track connectivity — while offline, the loader stays up (slow ticks + msg).
   const [online, setOnline] = useState(
@@ -87,9 +92,7 @@ function Shell() {
       {switchMounted && <ThemeSwitch show={switching} theme={theme} />}
       <GlassFilters />
       <Background />
-      <Suspense fallback={null}>
-        <GlassBlob3D />
-      </Suspense>
+      <AmbientOrb />
       <Navbar />
 
       {/* .stage runs the "dive into the page" zoom once the loader finishes */}
