@@ -1,6 +1,7 @@
 import { Sparkles, Github, Twitter, Linkedin, Dribbble } from "lucide-react";
 import GlassCard from "./GlassCard";
 import { scrollToId } from "../hooks/useLenis";
+import { navigate } from "../hooks/useRoute";
 
 const COLS = [
   { title: "Studio", links: ["Home", "Projects", "About Us", "Reviews"] },
@@ -57,11 +58,16 @@ export default function Footer() {
                 {c.links.map((l) => (
                   <li key={l}>
                     <button
-                      onClick={() =>
+                      onClick={() => {
+                        // Contact is its own page now, not a section
+                        if (l === "Contact") {
+                          navigate("/get-started");
+                          return;
+                        }
                         scrollToId(
                           l.toLowerCase().replace("about us", "about").replace(" ", "")
-                        )
-                      }
+                        );
+                      }}
                       className="text-[0.92rem] text-soft transition-colors duration-300 hover:text-[color:var(--text)]"
                     >
                       {l}

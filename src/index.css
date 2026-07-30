@@ -10,32 +10,52 @@
   --gx: 0.5;
   --gy: 0.22;
 
-  /* soft pastel — not stark white */
-  --page-1: #eeecf8;
-  --page-2: #e5ecf6;
+  /* soft, low-glare page tone (was noticeably brighter) */
+  --page-1: #f6f5f8;
+  --page-2: #eeedf3;
 
-  /* pastel environment light sources (soft blue · lavender · violet · white) */
-  --blob-lav: rgba(178, 160, 255, 0.62);
-  --blob-blue: rgba(150, 196, 255, 0.58);
-  --blob-violet: rgba(196, 168, 255, 0.5);
-  --blob-pink: rgba(255, 176, 214, 0.5);
-  --blob-mint: rgba(158, 236, 214, 0.46);
-  --blob-cream: rgba(255, 236, 214, 0.55);
-  --blob-core: rgba(255, 255, 255, 0.55);
+  /* pastel environment light sources (soft blue · lavender · violet · white)
+     toned down alongside the calmer page colour so the field reads soft
+     rather than glaring */
+  --blob-lav: rgba(178, 160, 255, 0.5);
+  --blob-blue: rgba(150, 196, 255, 0.46);
+  --blob-violet: rgba(196, 168, 255, 0.4);
+  --blob-pink: rgba(255, 176, 214, 0.38);
+  --blob-mint: rgba(158, 236, 214, 0.34);
+  --blob-cream: rgba(255, 236, 214, 0.4);
+  --blob-core: rgba(255, 255, 255, 0.42);
 
   /* glass body — SMOKED (dark-tinted) so panels read as glass on the light bg.
      Body is a subtle dark tint; edges/highlights stay bright for the glint. */
-  --glass-bg: rgba(34, 38, 62, 0.1);
-  --glass-bg-strong: rgba(34, 38, 62, 0.15);
-  --glass-lite-bg: rgba(34, 38, 62, 0.13);
-  --glass-inner: rgba(34, 38, 62, 0.08);
-  --glass-hi: rgba(255, 255, 255, 0.92);
-  --glass-reflection: rgba(255, 255, 255, 0.5);
-  --glass-blob: rgba(255, 255, 255, 0.45);
+  /* LIGHT MODE FILLS.
+     These used to be a dark "smoked" tint, which put near-black text on a
+     darkened panel — the reason copy was hard to read. They are now frosted
+     WHITE, so dark text always has a light surface under it. The glass identity
+     comes from the bright edge-catch, the sheen and the layered shadow rather
+     than from darkening the fill. */
+  /* Denser frost. Raising the WHITE alpha makes the panel read as thicker
+     glass and simultaneously RAISES contrast for the dark text on top — the
+     two goals pull in the same direction here. */
+  /* Translucent enough that the blurred pastel field reads THROUGH the panel
+     (that bleed-through is the frost), dense enough that dark text still has a
+     light surface. Verified: body copy stays well above AA. */
+  --glass-bg: rgba(255, 255, 255, 0.4);
+  --glass-bg-strong: rgba(255, 255, 255, 0.52);
+  --glass-lite-bg: rgba(255, 255, 255, 0.46);
+  --glass-inner: rgba(255, 255, 255, 0.58);
+  /* used where backdrop-filter is unavailable (low-perf tier) */
+  --glass-solid: rgba(252, 252, 255, 0.9);
+  --glass-hi: rgba(255, 255, 255, 1);
+  --glass-reflection: rgba(255, 255, 255, 0.78);
+  --glass-blob: rgba(255, 255, 255, 0.62);
 
   /* optical edges — bright rim light catches the glass edge */
-  --edge-bright: rgba(255, 255, 255, 0.95);
-  --edge-dim: rgba(255, 255, 255, 0.4);
+  --edge-bright: rgba(255, 255, 255, 1);
+  --edge-dim: rgba(255, 255, 255, 0.52);
+  /* a shaded rim so the panel silhouette is visible against a LIGHT page —
+     this is what actually sells "a pane of glass" without darkening the fill */
+  --edge-shade: rgba(28, 32, 68, 0.2);
+  --glass-ring: rgba(28, 32, 68, 0.1);
 
   /* layered shadow palette — soft + diffused (large blur, low opacity) */
   --sh-contact: rgba(50, 55, 90, 0.12);
@@ -43,13 +63,31 @@
   --sh-depth: rgba(56, 66, 120, 0.2);
   --sh-inneredge: rgba(70, 80, 130, 0.14);
 
-  --text: #1a1a1e;
-  --text-soft: #4a4a54;
-  --text-dim: #64646f;
+  /* Raised contrast: --text-soft and --text-dim were light enough that body
+     copy sitting on a tinted panel dropped near the AA threshold. */
+  --text: #14141a;
+  --text-soft: #33333e;
+  /* dim was landing at ~4.4:1 on panel fills — just under AA for body sizes */
+  --text-dim: #3f3f4b;
 
-  --accent: #6d5efc;
-  --accent-2: #7aa8ff;
-  --hairline: rgba(20, 20, 40, 0.08);
+  /* nudged darker: the small uppercase eyebrows sat at ~3.9:1 on light panels,
+     and white-on-accent buttons gain contrast from this too */
+  --accent: #5b4ae0;
+  --accent-2: #6f9bf0;
+  --hairline: rgba(20, 20, 40, 0.12);
+  /* dialog surfaces: frosted when blur is available, denser when it isn't */
+  /* translucent enough to read as glass over the scrim — there was ~10:1 of
+     contrast headroom, so this spends some of it on the effect */
+  --modal-bg: rgba(252, 252, 255, 0.62);
+  --modal-bg-solid: rgba(252, 253, 255, 0.93);
+  --nav-pill-bg: rgba(255, 255, 255, 0.7);
+  --nav-pill-solid: rgba(252, 253, 255, 0.96);
+  --soft-border: #e8e7ec;
+  /* form fields get their own fill/border so they always sit *apart* from the
+     card behind them, in either theme. The border is deliberately a touch
+     stronger than --soft-border so every box has a visible outline. */
+  --field-bg: rgba(255, 255, 255, 0.75);
+  --field-border: #d5d4de;
 }
 
 .dark {
@@ -66,8 +104,9 @@
   --blob-core: rgba(200, 210, 255, 0.16);
 
   /* cool-tinted, more opaque frosted panels so sections read clearly in dark */
-  --glass-bg: rgba(150, 162, 214, 0.12);
-  --glass-bg-strong: rgba(152, 164, 216, 0.18);
+  --glass-bg: rgba(150, 162, 214, 0.16);
+  --glass-bg-strong: rgba(152, 164, 216, 0.22);
+  --glass-solid: rgba(30, 33, 46, 0.9);
   --glass-lite-bg: rgba(150, 162, 214, 0.16);
   --glass-inner: rgba(255, 255, 255, 0.1);
   --glass-hi: rgba(255, 255, 255, 0.36);
@@ -76,19 +115,32 @@
 
   --edge-bright: rgba(255, 255, 255, 0.62);
   --edge-dim: rgba(255, 255, 255, 0.14);
+  /* on a dark page the silhouette already reads — keep the shaded rim off */
+  --edge-shade: rgba(255, 255, 255, 0.04);
+  --glass-ring: rgba(255, 255, 255, 0.07);
 
   --sh-contact: rgba(0, 0, 0, 0.32);
   --sh-ambient: rgba(0, 0, 0, 0.4);
   --sh-depth: rgba(0, 0, 0, 0.52);
   --sh-inneredge: rgba(255, 255, 255, 0.05);
 
-  --text: #f3f4f7;
-  --text-soft: #c1c3cd;
-  --text-dim: #888a97;
+  --text: #f6f7fa;
+  --text-soft: #d6d8e1;
+  /* lifted so the 12px uppercase labels clear AA on dark panels */
+  --text-dim: #b4b7c3;
 
   --accent: #9a8dff;
   --accent-2: #8fb4ff;
-  --hairline: rgba(255, 255, 255, 0.1);
+  --hairline: rgba(255, 255, 255, 0.14);
+  --modal-bg: rgba(26, 28, 41, 0.66);
+  --modal-bg-solid: rgba(23, 25, 36, 0.93);
+  --nav-pill-bg: rgba(150, 162, 214, 0.24);
+  --nav-pill-solid: rgba(30, 32, 46, 0.95);
+  --soft-border: rgba(255, 255, 255, 0.16);
+  /* dark fields: a slightly lifted fill + a clearly visible rim, so the boxes
+     read as inputs instead of blending into the card */
+  --field-bg: rgba(255, 255, 255, 0.07);
+  --field-border: rgba(255, 255, 255, 0.24);
 }
 
 * {
@@ -216,16 +268,23 @@ html.lenis body {
         color-mix(in srgb, var(--accent) 7%, transparent) 0%,
         transparent 26%
       );
-    /* PERF: blur radius drives backdrop-filter cost superlinearly, and each
-       extra function (contrast) is another full-surface pass. Trimmed from
-       blur(15px) saturate(185%) contrast(103%) — visually near-identical. */
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    /* Real frost. This IS the glass — without it a translucent panel just looks
+       like a flat tinted card. Kept affordable three ways:
+         · a modest radius (cost scales with radius)
+         · `.glass-far` removes it from every panel that isn't near the
+           viewport, so only the 1–2 on screen ever blur (see GlassCard)
+         · the low-perf tier drops it entirely and compensates with a denser
+           fill, so phones and weak GPUs never pay for it
+       Result: frosted where you can see it, free everywhere you can't. */
+    backdrop-filter: blur(11px) saturate(155%);
+    -webkit-backdrop-filter: blur(11px) saturate(155%);
     border: 1px solid transparent;
     /* soft, diffused elevation (large blur radius, low opacity) + a bright
        top-edge inner highlight so the glass catches light along its rim. */
     box-shadow: 0 2px 6px -3px var(--sh-contact),
       0 40px 90px -50px var(--sh-depth),
+      /* crisp outer ring → defines the pane's edge on a light page */
+        0 0 0 1px var(--glass-ring),
       inset 0 1.5px 1.5px var(--glass-hi),
       inset 0 -1px 2px -1px var(--sh-inneredge),
       inset 0 0 30px -6px var(--glass-reflection);
@@ -241,9 +300,10 @@ html.lenis body {
     background: linear-gradient(
       135deg,
       var(--edge-bright) 0%,
-      var(--edge-dim) 26%,
-      transparent 50%,
-      var(--edge-dim) 74%,
+      var(--edge-dim) 24%,
+      /* shaded midpoint = the rim reads against a light background too */
+        var(--edge-shade) 50%,
+      var(--edge-dim) 76%,
       var(--edge-bright) 100%
     );
     -webkit-mask: linear-gradient(#000 0 0) content-box,
@@ -326,11 +386,17 @@ html.lenis body {
       inset 0 -1px 2px -1px var(--sh-inneredge);
   }
 
-  /* Refraction kept as a cheap, non-displacement variant so scrolling stays
-     at frame rate (the displacement filter recomputed the backdrop per frame). */
+  /* The hero card is one of only two surfaces that keeps a real backdrop
+     blur — it sits over the ambient orb and the widgets, where the refraction
+     actually reads. Radius trimmed from 22px; cost scales with radius. */
   .glass-refract {
-    backdrop-filter: blur(22px) saturate(165%);
-    -webkit-backdrop-filter: blur(22px) saturate(165%);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+  }
+  /* Static at the top of the page, so it isn't re-blurring during scroll. */
+  [data-perf="low"] .glass-refract {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .hairline {
@@ -356,7 +422,9 @@ html.lenis body {
   [data-perf="low"] .glass-refract {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    background-color: var(--glass-bg-strong);
+    /* no blur available, so the fill goes denser — keeps panels reading as
+       solid frosted surfaces and keeps text contrast high */
+    background-color: var(--glass-solid);
   }
   /* smaller, cheaper ambient lights */
   [data-perf="low"] .light-drift {
@@ -470,6 +538,282 @@ html.lenis body {
       animation: none;
     }
   }
+}
+
+/* ============ Get Started form controls ============
+   8px rhythm, 20–24px radii, soft borders, visible focus. All hover/active
+   states are colour + shadow only (no layout, no filters) so they cost nothing. */
+.gs-input {
+  /* No fill — the field is defined purely by its outline, so the glass card
+     shows straight through it. Typed text uses the full-strength text colour
+     for maximum legibility in both themes. */
+  background: transparent;
+  border: 1px solid var(--field-border);
+  color: var(--text);
+  border-radius: 20px;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.gs-input::placeholder {
+  color: var(--text-dim);
+  opacity: 1; /* was 0.75, which pushed placeholders under the legibility line */
+}
+.gs-input:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--field-border));
+}
+.gs-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* selectable card / pill */
+.gs-choice {
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--text-soft);
+  transition: color 200ms ease, border-color 200ms ease,
+    background-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+.gs-choice:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--field-border));
+  transform: translateY(-1px);
+}
+.gs-choice.is-active {
+  color: var(--text);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--field-bg));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.gs-choice:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* checkbox row */
+.gs-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--field-border);
+  background: var(--field-bg);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+.gs-check:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--field-border));
+}
+.gs-check:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.gs-box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  border-radius: 7px;
+  border: 1.5px solid var(--field-border);
+  color: #fff;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+.gs-box.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* primary submit */
+.gs-submit {
+  background: linear-gradient(
+    180deg,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 72%, #2f1fb8)
+  );
+  box-shadow: 0 12px 34px -14px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease, filter 220ms ease;
+}
+.gs-submit:hover {
+  transform: translateY(-2px);
+  filter: saturate(112%);
+  box-shadow: 0 20px 46px -16px color-mix(in srgb, var(--accent) 78%, transparent);
+}
+.gs-submit:active {
+  transform: translateY(0) scale(0.99);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-choice:hover,
+  .gs-submit:hover {
+    transform: none;
+  }
+}
+
+/* submit spinner — a bordered circle, rotation only (compositor-only) */
+.gs-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  animation: gs-spin 0.7s linear infinite;
+}
+@keyframes gs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Phones: tighten the whole page down a step so nothing crowds the screen.
+   Pure font-size/padding changes — no extra layers, no GPU cost. */
+@media (max-width: 640px) {
+  .gs-page .gs-input {
+    padding: 12px 14px;
+    font-size: 0.9rem;
+    border-radius: 16px;
+  }
+  .gs-page .gs-choice {
+    font-size: 0.82rem;
+  }
+  .gs-page .gs-choice.rounded-\[18px\] {
+    padding: 11px 12px;
+    border-radius: 14px;
+  }
+  .gs-page .gs-check {
+    padding: 10px 12px;
+    border-radius: 14px;
+    font-size: 0.86rem;
+  }
+  .gs-page .gs-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+  }
+}
+
+/* ============ Dialog surface ============
+   A dialog is a reading surface, so it does NOT get a translucent fill. It sits
+   over a dark scrim, so any transparency drags the text contrast down — that is
+   why copy was unreadable in light mode and washed out on phones (where the
+   low tier removes backdrop-filter, leaving only a faint tint).
+   Near-opaque also means it needs no backdrop-filter at all, which removes the
+   last expensive blur surface while a modal is open. */
+[role="dialog"].glass {
+  /* Frosted, but dense enough that text never fights the scrim behind it.
+     The tint gradients that used to muddy the copy are replaced by a single
+     soft diagonal sheen. */
+  background-color: var(--modal-bg);
+  background-image: linear-gradient(
+    152deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    transparent 44%
+  );
+  /* No blur WHILE the dialog animates — a backdrop-filter on a moving,
+     scaling element is re-computed every frame, which is exactly what makes
+     an open/close feel heavy. It switches on once the motion settles. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* Settled = static panel over a frozen page, so the blur is rasterised once
+   and then simply composited. This is the cheap way to have real glass. */
+[role="dialog"].glass.is-settled {
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+}
+/* Phones / weak GPUs: no blur ever — the fill goes denser instead, which also
+   guarantees text contrast where backdrop-filter is skipped. */
+[data-perf="low"] [role="dialog"].glass,
+[data-perf="low"] [role="dialog"].glass.is-settled {
+  background-color: var(--modal-bg-solid);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ============ Modal scrim ============
+   A full-viewport layer, so its blur is the single most expensive effect on
+   the page while a dialog is open. High tier gets a light blur; low tier gets
+   a slightly darker flat scrim and no blur at all — visually near-identical
+   once content sits on top of it, and free. */
+.modal-scrim {
+  /* No backdrop-filter here on purpose. This layer covers the whole viewport
+     AND fades in/out, so blurring it meant re-blurring a full screen every
+     frame of the transition. The frosted look comes from the panel's own
+     backdrop-filter instead; this just darkens what's behind. */
+  /* lighter than before so the page still reads through the glass panel —
+     a fully dark scrim made the dialog look like a solid card */
+  background: rgba(8, 10, 22, 0.44);
+}
+[data-perf="low"] .modal-scrim {
+  background: rgba(8, 10, 22, 0.62);
+}
+
+/* While a dialog is up, everything behind it is covered by that scrim — so
+   re-blurring the page's own glass panels is invisible work. Kills ~8
+   backdrop-filter surfaces for the whole time the modal is open. The dialog
+   itself is excluded so it keeps its glass. */
+[data-modal-open] .glass:not([role="dialog"]),
+[data-modal-open] .nav-floating.glass,
+[data-modal-open] .sphere-glass,
+[data-modal-open] .glass-refract {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+/* The page behind is hidden — stop every decorative loop on it. Scoped to
+   .stage / the background layers, which the dialog is NOT inside (it is
+   portaled straight to <body>), so the dialog's own motion is untouched. */
+[data-modal-open] .stage,
+[data-modal-open] .stage *,
+[data-modal-open] .light-drift,
+[data-modal-open] .orb,
+[data-modal-open] .marquee-track {
+  animation-play-state: paused !important;
+}
+
+/* ============ Modal scrollbar ============
+   A slim, inset, glass-tinted track that only asserts itself on hover. Kept
+   inside the panel's rounded corners via generous vertical padding on the
+   track, so the thumb never collides with the radius. */
+.modal-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: color-mix(in srgb, var(--text-dim) 45%, transparent)
+    transparent;
+  overscroll-behavior: contain; /* don't chain scrolling to the page behind */
+  /* let the browser own vertical panning on touch → native-speed, off the
+     main thread. Without this the gesture waits on JS before it can move. */
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+.modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 14px 0; /* keeps the track clear of the rounded corners */
+}
+.modal-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  /* a 3px transparent border + content-box clip = a slim 4px thumb with a
+     comfortable 10px hit area */
+  border: 3px solid transparent;
+  background-clip: content-box;
+  background-color: color-mix(in srgb, var(--text-dim) 38%, transparent);
+  transition: background-color 220ms ease;
+}
+.modal-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--text-dim) 62%, transparent);
+}
+.modal-scroll::-webkit-scrollbar-thumb:hover,
+.modal-scroll::-webkit-scrollbar-thumb:active {
+  background-color: color-mix(in srgb, var(--accent) 78%, transparent);
+}
+.dark .modal-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.dark .modal-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.34);
 }
 
 /* ============ Ambient glass orb (CSS — replaces the WebGL blob) ============
@@ -677,9 +1021,14 @@ html.lenis body {
 /* The floating pill (scrolled state) is more opaque + stronger blur so it
    reads clearly over any section it passes over. */
 .nav-floating.glass {
-  background-color: rgba(34, 38, 62, 0.22);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  /* was a hardcoded dark fill, which put dark nav text on a dark pill in light
+     mode — one of the places text was disappearing. Now theme-aware. */
+  background-color: var(--nav-pill-bg);
+  /* The only surface that re-blurs during scroll (it is fixed while content
+     moves under it), so it is kept small and is the first thing dropped on
+     the low tier. */
+  backdrop-filter: blur(13px) saturate(150%);
+  -webkit-backdrop-filter: blur(13px) saturate(150%);
 }
 /* The pill is fixed and sits over moving content, so its blur is recomputed
    on every scrolled frame — the costliest backdrop on the page. Low tier
@@ -687,18 +1036,12 @@ html.lenis body {
 [data-perf="low"] .nav-floating.glass {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  background-color: rgba(28, 30, 48, 0.9);
-}
-[data-perf="low"].dark .nav-floating.glass,
-.dark [data-perf="low"] .nav-floating.glass {
-  background-color: rgba(30, 32, 46, 0.94);
+  /* no blur here, so the fill goes denser to keep the links legible */
+  background-color: var(--nav-pill-solid);
 }
 [data-perf="low"] .sphere-glass {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-}
-.dark .nav-floating.glass {
-  background-color: rgba(150, 162, 214, 0.24);
 }
 
 /* ===== Page reveal when the loader zooms outward ===== */
@@ -747,7 +1090,9 @@ html.lenis body {
   pointer-events: none; /* must never intercept clicks once hidden */
 }
 .tswitch {
-  --tw: min(300px, 82vw);
+  /* Was min(300px, 82vw) — nearly full width on a phone and oversized on
+     desktop. A medium pill reads more premium and costs less to blur. */
+  --tw: min(208px, 56vw);
   --k: calc(var(--tw) / 2 - 24px);
   position: relative;
   width: var(--tw);

@@ -17,9 +17,10 @@ import Projects from "./components/Projects";
 import TechSphere from "./components/TechSphere";
 import Reviews from "./components/Reviews";
 import About from "./components/About";
-import Contact from "./components/Contact";
 import Help from "./components/Help";
 import Footer from "./components/Footer";
+import GetStarted from "./pages/GetStarted";
+import { useRoute } from "./hooks/useRoute";
 
 function Shell() {
   const { loading, switching, theme } = useTheme();
@@ -27,6 +28,7 @@ function Shell() {
   usePointerGlow();
   // sets <html data-perf="high|low"> — CSS uses it to drop the costly blurs
   usePerfTier();
+  const route = useRoute();
 
   // Track connectivity — while offline, the loader stays up (slow ticks + msg).
   const [online, setOnline] = useState(
@@ -83,6 +85,10 @@ function Shell() {
     }
   }, [showing]);
 
+  // The Get Started page is its own view — same background, orb and theme, but
+  // no one-page nav or marketing sections around it.
+  const isGetStarted = route === "/get-started";
+
   return (
     <>
       <a href="#home" className="skip-link">
@@ -93,35 +99,40 @@ function Shell() {
       <GlassFilters />
       <Background />
       <AmbientOrb />
-      <Navbar />
 
-      {/* .stage runs the "dive into the page" zoom once the loader finishes */}
-      <div className={`stage${showing ? "" : " stage--in"}`}>
-        <main>
-          <Hero />
-          <div className="section-cv">
-            <Projects />
-          </div>
-          <div className="section-cv">
-            <TechSphere />
-          </div>
-          <div className="section-cv">
-            <Reviews />
-          </div>
-          <div className="section-cv">
-            <About />
-          </div>
-          <div className="section-cv">
-            <Contact />
-          </div>
-          <div className="section-cv">
-            <Help />
-          </div>
-        </main>
-        <div className="section-cv">
-          <Footer />
+      {isGetStarted ? (
+        <div className={`stage${showing ? "" : " stage--in"}`}>
+          <GetStarted />
         </div>
-      </div>
+      ) : (
+        <>
+          <Navbar />
+          {/* .stage runs the "dive into the page" zoom once the loader finishes */}
+          <div className={`stage${showing ? "" : " stage--in"}`}>
+            <main>
+              <Hero />
+              <div className="section-cv">
+                <Projects />
+              </div>
+              <div className="section-cv">
+                <TechSphere />
+              </div>
+              <div className="section-cv">
+                <Reviews />
+              </div>
+              <div className="section-cv">
+                <About />
+              </div>
+              <div className="section-cv">
+                <Help />
+              </div>
+            </main>
+            <div className="section-cv">
+              <Footer />
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

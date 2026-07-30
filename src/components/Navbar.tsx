@@ -3,15 +3,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Moon, Sun, Menu, X, Sparkles } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { scrollToId } from "../hooks/useLenis";
+import { navigate } from "../hooks/useRoute";
 import Button from "./Button";
 
-const LINKS = [
+/* Contact is no longer a nav item — the Get Started button is the single,
+   deliberate entry point to the inquiry page. */
+const LINKS: { label: string; id: string; route?: string }[] = [
   { label: "Home", id: "home" },
   { label: "Projects", id: "projects" },
   { label: "Stack", id: "stack" },
   { label: "Reviews", id: "reviews" },
   { label: "About Us", id: "about" },
-  { label: "Contact", id: "contact" },
   { label: "Help", id: "help" },
 ];
 
@@ -68,7 +70,18 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
 
   const go = (id: string) => {
     setOpen(false);
+    const link = LINKS.find((l) => l.id === id);
+    if (link?.route) {
+      navigate(link.route);
+      return;
+    }
     scrollToId(id);
+  };
+
+  /** Get Started always opens the inquiry page. */
+  const goStarted = () => {
+    setOpen(false);
+    navigate("/get-started");
   };
 
   const logo = (
@@ -80,7 +93,7 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
         <Sparkles size={16} />
       </span>
       <span className="text-[0.98rem] font-semibold tracking-tight">
-        Team&nbsp;Invisos
+      &nbsp;Invisos
       </span>
     </button>
   );
@@ -138,7 +151,7 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
         </AnimatePresence>
       </button>
       <div className="hidden sm:block">
-        <Button onClick={() => go("contact")} className="!px-5 !py-2.5">
+        <Button onClick={goStarted} className="!px-5 !py-2.5">
           Get Started
         </Button>
       </div>
@@ -180,7 +193,7 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
             </button>
           ))}
           <div className="p-2">
-            <Button onClick={() => go("contact")} className="w-full">
+            <Button onClick={goStarted} className="w-full">
               Get Started
             </Button>
           </div>

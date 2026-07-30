@@ -4,6 +4,7 @@ import GlassCard from "./GlassCard";
 import Button from "./Button";
 import SiteNav from "./Navbar";
 import { scrollToId } from "../hooks/useLenis";
+import { navigate } from "../hooks/useRoute";
 
 /* A small floating glass widget used inside the hero artwork */
 function Widget({
@@ -74,7 +75,7 @@ export default function Hero() {
             >
               Building premium
               <br />
-              digital experiences
+              digital experiences 
             </motion.h1>
 
             <motion.p
@@ -97,7 +98,7 @@ export default function Hero() {
               <Button onClick={() => scrollToId("projects")}>
                 Explore Projects <ArrowUpRight size={18} />
               </Button>
-              <Button variant="ghost" onClick={() => scrollToId("contact")}>
+              <Button variant="ghost" onClick={() => navigate("/get-started")}>
                 Contact Us
               </Button>
             </motion.div>

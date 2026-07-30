@@ -144,9 +144,14 @@ export default function TechSphere() {
     );
     io.observe(scene);
 
-    const render = () => {
+    /* Rotation is time-based (radians per second) rather than per-frame, so
+       the speed is identical at 30fps, 60fps or 120fps. It used to add a fixed
+       amount per frame, which meant capping the loop to 30fps silently halved
+       the spin. */
+    const SPIN = 0.22; // rad/s
+    const render = (dtMs = 1000 / 30) => {
       // gentle multi-axis drift
-      ay += 0.0022;
+      ay += SPIN * (dtMs / 1000);
       const ax = -0.32 * Math.sin(ay * 0.6);
       const cy = Math.cos(ay);
       const sy = Math.sin(ay);
@@ -188,9 +193,12 @@ export default function TechSphere() {
     const FRAME = 1000 / 30;
     const loop = (t: number) => {
       raf = requestAnimationFrame(loop);
-      if (t - last < FRAME) return;
+      if (!last) last = t;
+      const dt = t - last;
+      if (dt < FRAME) return;
       last = t;
-      render();
+      // clamp so a backgrounded tab returning doesn't jump the globe
+      render(Math.min(dt, 100));
     };
     render();
     if (!reduce) raf = requestAnimationFrame(loop);
