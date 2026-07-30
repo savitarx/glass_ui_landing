@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowUpRight, Check, Search, Plus, Wand2 } from "lucide-react";
+import { ArrowUpRight, Check, Plus, Wand2 } from "lucide-react";
 import GlassCard from "./GlassCard";
 import Button from "./Button";
 import SiteNav from "./Navbar";

@@ -81,7 +81,7 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[color:var(--hairline)] pt-6 text-[0.85rem] text-dim sm:flex-row">
           <span>© {new Date().getFullYear()} Team Invisos. All rights reserved.</span>
-          <span>Crafted with care.</span>
+          <span>Crafted with love and care</span>
         </div>
       </GlassCard>
     </footer>
