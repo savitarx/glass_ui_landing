@@ -104,9 +104,12 @@ export default function Reviews() {
 
         <Reveal delay={0.1}>
           <div className="marquee-pause relative mt-12">
-            {/* edge fades */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[color:var(--page-2)] to-transparent opacity-70" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[color:var(--page-2)] to-transparent opacity-70" />
+            {/* The edge fades that used to sit here were filled with the PAGE
+                colour while living inside a translucent glass panel. Every card
+                entering the strip got veiled by that opaque wash, which read as
+                a gap opening up between cards — most obviously in dark mode.
+                The panel already clips with overflow-hidden, so they are gone;
+                that also removes two full-height layers from the compositor. */}
             <div className="overflow-hidden">
               <div ref={track} className="marquee-track flex animate-marquee">
                 {loop.map((r, i) => (

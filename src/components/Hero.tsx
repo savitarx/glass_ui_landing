@@ -99,7 +99,7 @@ export default function Hero() {
                 Explore Projects <ArrowUpRight size={18} />
               </Button>
               <Button variant="ghost" onClick={() => navigate("/get-started")}>
-                Contact Us
+                Talk to an Expert
               </Button>
             </motion.div>
 
@@ -111,14 +111,14 @@ export default function Hero() {
             >
               <div>
                 <div className="text-xl font-semibold text-[color:var(--text)]">
-                  120+
+                  24*7
                 </div>
-                Products shipped
+                Support
               </div>
               <div className="h-8 w-px bg-[color:var(--hairline)]" />
               <div>
                 <div className="text-xl font-semibold text-[color:var(--text)]">
-                  9 yrs
+                  2 years
                 </div>
                 Of craft
               </div>
@@ -174,8 +174,8 @@ export default function Hero() {
                 lite
                 className="flex w-44 items-center gap-2 rounded-full px-4 py-3 sm:w-52"
               >
-                <Search size={16} className="shrink-0 text-dim" />
-                <span className="truncate text-[0.85rem] text-dim">Search…</span>
+                {/* <Search size={16} className="shrink-0 text-dim" /> */}
+                <span className="truncate text-[0.85rem] text-dim"></span>
                 <span
                   className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-full text-white"
                   style={{ background: "var(--accent)" }}
@@ -189,16 +189,16 @@ export default function Hero() {
             <Widget className="bottom-0 left-0" delay={0.45} float={7}>
               <GlassCard lite className="w-44 rounded-[26px] p-4 sm:w-48">
                 <div className="mb-3 text-[0.8rem] font-semibold">Delivery</div>
-                {["Design system", "Handoff", "Launch"].map((t, i) => (
+                {["Plan", "Create", "Deliver"].map((t, i) => (
                   <div key={t} className="mb-2 flex items-center gap-2.5">
                     <span
                       className="grid h-5 w-5 place-items-center rounded-full text-white"
                       style={{
-                        background: i < 2 ? "var(--accent)" : "transparent",
-                        border: i < 2 ? "none" : "1px solid var(--hairline)",
+                        background: i < 3 ? "var(--accent)" : "transparent",
+                        border: i < 3 ? "none" : "1px solid var(--hairline)",
                       }}
                     >
-                      {i < 2 && <Check size={12} />}
+                      {i < 3 && <Check size={12} />}
                     </span>
                     <span className="text-[0.82rem] text-soft">{t}</span>
                   </div>

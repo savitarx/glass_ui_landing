@@ -13,6 +13,7 @@ import {
 import GlassCard from "../components/GlassCard";
 import Reveal from "../components/Reveal";
 import { navigate } from "../hooks/useRoute";
+import { useTheme } from "../hooks/useTheme";
 import { buildInquiryMail, sendInquiry } from "../lib/sendInquiry";
 
 /* ------------------------------------------------------------------ data */
@@ -168,6 +169,7 @@ function Choice({
 /* --------------------------------------------------------------- the page */
 
 export default function GetStarted() {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -184,6 +186,30 @@ export default function GetStarted() {
   const [via, setVia] = useState<"server" | "mail-client">("server");
 
   const ta = useRef<HTMLTextAreaElement>(null);
+
+  /* The mascot loop is only mounted on large screens with a fine pointer.
+     Gating in JS rather than CSS means phones never download or decode the
+     video at all — `display:none` would still cost them the fetch. */
+  const [showLoop, setShowLoop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(
+      "(min-width: 1024px) and (prefers-reduced-motion: no-preference)"
+    );
+    const sync = () => setShowLoop(mq.matches);
+    sync();
+    /* A mount-time read plus a `change`/`resize` listener proved unreliable: if
+       the viewport settles before this effect runs, or changes without firing
+       those events, the state stays stale — which showed the video on a narrow
+       screen and, in reverse, hid it on a wide one. A ResizeObserver on the
+       root element fires on any layout size change, so the flag can't drift. */
+    mq.addEventListener("change", sync);
+    const ro = new ResizeObserver(sync);
+    ro.observe(document.documentElement);
+    return () => {
+      mq.removeEventListener("change", sync);
+      ro.disconnect();
+    };
+  }, []);
 
   // auto-resize the textarea to its content
   useEffect(() => {
@@ -313,6 +339,13 @@ export default function GetStarted() {
   /* ------------------------------------------------------------- form */
   return (
     <main className="gs-page relative z-[1] mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-16">
+      {/* Colour for the frost to refract. The page background here is a large
+          flat expanse, so a frosted panel over it had nothing to bend and read
+          as a plain white card — most noticeably in light mode. These two soft
+          washes sit behind the cards and give the glass something to work with.
+          Static radial gradients: rasterised once, no filter, no animation. */}
+      <div className="gs-wash gs-wash--a" aria-hidden />
+      <div className="gs-wash gs-wash--b" aria-hidden />
       {/* back to site */}
       <Reveal>
         <button
@@ -328,8 +361,9 @@ export default function GetStarted() {
         </button>
       </Reveal>
 
-      {/* hero */}
-      <header className="max-w-3xl">
+      {/* hero — copy left, looping mascot right (large screens only) */}
+      <header className="lg:flex lg:items-center lg:justify-between lg:gap-14">
+        <div className="lg:max-w-3xl lg:flex-1">
         <Reveal>
           <span
             className="text-[0.72rem] font-semibold uppercase tracking-[0.2em]"
@@ -349,6 +383,42 @@ export default function GetStarted() {
             with the next steps.
           </p>
         </Reveal>
+        </div>
+
+        {/* Looping mascot. Mounted ONLY on large screens — a CSS `display:none`
+            would still download and decode the video on phones. */}
+        {/* NOT wrapped in <Reveal>: Framer Motion puts inline opacity/transform
+            on its wrapper, and either one creates an isolated stacking context —
+            which a mix-blend-mode cannot blend through. That is what left the
+            source's white plate visible as a hard rectangle. No animated
+            ancestor here, so the blend reaches the page behind it. */}
+        {/* `hidden lg:block` below is a second, independent guard: even if the
+            JS state were ever stale, CSS still prevents it appearing on a small
+            screen. The JS gate is what stops phones downloading the file at
+            all; the class makes "never visible below lg" unconditional. */}
+        {showLoop && (
+          <div className="gs-loop shrink-0 hidden lg:block" aria-hidden>
+            {/* Two separate sources, one per theme. The dark asset is authored
+                on a plate of rgb(20,22,31) — the dark page is rgb(22,22,31) —
+                so it needs no mask or filter at all to disappear. `key` forces
+                a real element swap so the new file actually loads on toggle. */}
+            <video
+              key={theme}
+              className="gs-loop__vid"
+              src={
+                theme === "dark"
+                  ? "/media/mascot-dark.mp4"
+                  : "/media/hero-loop.mp4"
+              }
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              disablePictureInPicture
+            />
+          </div>
+        )}
       </header>
 
       <div className="mt-14 grid gap-8 lg:mt-20 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-10">

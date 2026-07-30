@@ -149,7 +149,7 @@ export default function TechSphere() {
        amount per frame, which meant capping the loop to 30fps silently halved
        the spin. */
     const SPIN = 0.22; // rad/s
-    const render = (dtMs = 1000 / 30) => {
+    const render = (dtMs = 0) => {
       // gentle multi-axis drift
       ay += SPIN * (dtMs / 1000);
       const ax = -0.32 * Math.sin(ay * 0.6);
@@ -171,10 +171,14 @@ export default function TechSphere() {
         const depth = (z2 + 1) / 2; // 0 (back) .. 1 (front)
         const scale = 0.55 + depth * 0.55; // 0.55 .. 1.10
         // billboard: only translate + scale, no 3D rotation → always crisp
-        el.style.transform = `translate(-50%, -50%) translate3d(${(x1 * R).toFixed(
-          1
-        )}px, ${(y2 * R).toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
-        el.style.opacity = (0.28 + depth * 0.72).toFixed(3);
+        /* Full precision — rounding to 0.1px made the drift visibly step
+           between positions instead of gliding. */
+        el.style.transform = `translate(-50%, -50%) translate3d(${x1 * R}px, ${
+          y2 * R
+        }px, 0) scale(${scale})`;
+        /* back-facing tiles used to drop to 0.28, which read as "some icons
+           aren't moving" because they were too faint to track */
+        el.style.opacity = String(0.42 + depth * 0.58);
         // PERF: zIndex is only written when it actually changes — every write
         // re-sorts the stacking context.
         const z = String(Math.round(depth * 100));
@@ -188,19 +192,20 @@ export default function TechSphere() {
       }
     };
 
-    // ~30fps is plenty for a slow drift and halves the work of the fastest
-    // loop on the page.
-    const FRAME = 1000 / 30;
+    /* Runs at the display's native rate. The previous 30fps cap is what made
+       the spin look steppy: it skipped every other frame, so the tiles jumped
+       twice as far each time they moved. The work per frame is tiny — two
+       compositor-only style writes per tile — so uncapped is both smoother and
+       still cheap. It is fully cancelled while off screen (see the observer). */
     const loop = (t: number) => {
       raf = requestAnimationFrame(loop);
       if (!last) last = t;
       const dt = t - last;
-      if (dt < FRAME) return;
       last = t;
-      // clamp so a backgrounded tab returning doesn't jump the globe
+      // clamp so returning from a background tab doesn't jump the globe
       render(Math.min(dt, 100));
     };
-    render();
+    render(0);
     if (!reduce) raf = requestAnimationFrame(loop);
 
     return () => {

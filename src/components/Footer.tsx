@@ -24,7 +24,7 @@ export default function Footer() {
                 <Sparkles size={17} />
               </span>
               <span className="text-[1.05rem] font-semibold tracking-tight">
-                Team Invisos
+                Invisos
               </span>
             </div>
             <p className="mt-4 max-w-xs text-[0.92rem] leading-relaxed text-soft">

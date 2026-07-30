@@ -652,6 +652,156 @@ html.lenis body {
   }
 }
 
+/* Colour washes behind the Get Started cards, so the frosted panels have
+   something to refract instead of sitting on flat page colour. Plain radial
+   gradients — no filter, no animation, rasterised once. */
+.gs-page {
+  isolation: isolate; /* keeps the washes behind this page's own content only */
+}
+.gs-wash {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 50%;
+}
+.gs-wash--a {
+  /* pushed down out of the hero's right side so the mascot sits on near-flat
+     page colour — a coloured gradient directly behind it would re-expose the
+     source's white plate as a bright patch */
+  top: 20%;
+  right: -8%;
+  width: min(760px, 90%);
+  aspect-ratio: 1.2;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 26%, transparent) 0%,
+    color-mix(in srgb, var(--accent-2) 16%, transparent) 42%,
+    transparent 70%
+  );
+}
+.gs-wash--b {
+  bottom: 6%;
+  left: -12%;
+  width: min(640px, 86%);
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent-2) 22%, transparent) 0%,
+    color-mix(in srgb, var(--blob-mint) 40%, transparent) 46%,
+    transparent 72%
+  );
+}
+.dark .gs-wash--a,
+.dark .gs-wash--b {
+  opacity: 0.62;
+}
+
+/* ---- looping mascot beside the Get Started headline (lg screens only) ----
+   The source is a 720×840 line-art character sitting on a NEAR-WHITE plate
+   (sampled at 253–254). That plate is the whole problem: left alone it is an
+   invisible rectangle in light mode and a glaring white box in dark mode. So
+   each theme gets its own treatment rather than one compromise.  */
+.gs-loop {
+  width: 190px;
+  aspect-ratio: 720 / 840; /* exact source ratio — never distorted */
+  position: relative;
+}
+@media (min-width: 1280px) {
+  .gs-loop {
+    width: 224px;
+  }
+}
+.gs-loop__vid {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+
+  /* NO mix-blend-mode. This element lives inside .stage, which carries a
+     permanent transform + opacity from the page-reveal animation, and that
+     creates an isolated stacking context a blend mode cannot reach through —
+     which is why the plate stayed a hard rectangle.
+
+     Instead the rectangle is dissolved directly: the plate is already within a
+     few RGB points of the page tone in each theme (254 vs 246 in light; and
+     inverted to ~1 vs 22 in dark), so feathering the edges to transparent is
+     enough to make the boundary disappear. A mask is composited, so this is
+     free. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 86% 84% at 50% 47%,
+    #000 40%,
+    rgba(0, 0, 0, 0.55) 70%,
+    transparent 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 86% 84% at 50% 47%,
+    #000 40%,
+    rgba(0, 0, 0, 0.55) 70%,
+    transparent 92%
+  );
+
+  /* Colour-match the plate to the page: the source plate is rgb(254) and the
+     light page is rgb(246,245,248), so scaling luminance by 246/254 lands the
+     plate on the page tone almost exactly. Combined with the feather above,
+     the rectangle has no edge left to see. */
+  filter: brightness(0.968);
+}
+/* DARK MODE — a documented limitation, not an oversight.
+   The source's plate and the mascot's body are the SAME pixel value
+   (both rgb(255,253,254), sampled from the file). Nothing colour-based can
+   erase one and keep the other, so inverting was wrong: it made the plate
+   dark but turned the mascot dark too.
+   The mascot is therefore left completely untouched — still white, exactly as
+   authored — and only the plate's edges are dissolved, so it reads as a soft
+   spotlight behind the character instead of a hard rectangle.
+   A truly invisible background needs an asset with an alpha channel
+   (transparent WebM/VP9 or animated PNG). */
+/* DARK uses its own asset, authored on a plate of rgb(20,22,31) against a
+   rgb(22,22,31) page — a 2-point difference, so it vanishes on its own. No
+   mask and no filter: the mascot stays exactly as authored (white), and only
+   the plate disappears because it already matches. */
+/* The dark source is 288×234 and the mascot occupies only the middle ~49% of
+   its width, so the box is scaled up to make the MASCOT itself render at the
+   same size as the light one (which fills most of its 190px box). */
+.dark .gs-loop {
+  width: 300px;
+  aspect-ratio: 288 / 234;
+}
+@media (min-width: 1280px) {
+  .dark .gs-loop {
+    width: 352px;
+  }
+}
+/* The plate is already within a few points of the page (rgb 9–26 vs rgb 22),
+   but it is a subtle gradient rather than flat, so the edges are feathered to
+   dissolve the boundary. The ellipse is centred on the mascot's measured
+   bounding box (53% / 60%) and its opaque core fully covers it, so the mascot
+   is never touched — only the surrounding plate fades out. */
+.dark .gs-loop__vid {
+  filter: none;
+  /* The falloff must COMPLETE inside the element. A previous attempt used radii
+     of 66%/78%, which are larger than the box itself, so the transparent stop
+     fell outside the visible area and the plate kept a hard rectangular edge.
+     These radii are ≤ ~50%, and the opaque core (to 56% of them ≈ 27% × 32%)
+     is sized from the mascot's measured bounding box (24.6% × 34% of the
+     frame) so the character is never touched — only the surrounding plate,
+     and its compression dither, fades away. */
+  -webkit-mask-image: radial-gradient(
+    ellipse 42% 52% at 53% 62%,
+    #000 62%,
+    rgba(0, 0, 0, 0.7) 76%,
+    rgba(0, 0, 0, 0.3) 88%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 42% 52% at 53% 62%,
+    #000 62%,
+    rgba(0, 0, 0, 0.7) 76%,
+    rgba(0, 0, 0, 0.3) 88%,
+    transparent 100%
+  );
+}
+
 /* submit spinner — a bordered circle, rotation only (compositor-only) */
 .gs-spinner {
   width: 16px;
@@ -701,7 +851,7 @@ html.lenis body {
    low tier removes backdrop-filter, leaving only a faint tint).
    Near-opaque also means it needs no backdrop-filter at all, which removes the
    last expensive blur surface while a modal is open. */
-[role="dialog"].glass {
+.modal-shell.glass {
   /* Frosted, but dense enough that text never fights the scrim behind it.
      The tint gradients that used to muddy the copy are replaced by a single
      soft diagonal sheen. */
@@ -719,17 +869,61 @@ html.lenis body {
 }
 /* Settled = static panel over a frozen page, so the blur is rasterised once
    and then simply composited. This is the cheap way to have real glass. */
-[role="dialog"].glass.is-settled {
+.modal-shell.glass.is-settled {
   backdrop-filter: blur(26px) saturate(170%);
   -webkit-backdrop-filter: blur(26px) saturate(170%);
 }
 /* Phones / weak GPUs: no blur ever — the fill goes denser instead, which also
    guarantees text contrast where backdrop-filter is skipped. */
 [data-perf="low"] [role="dialog"].glass,
-[data-perf="low"] [role="dialog"].glass.is-settled {
+[data-perf="low"] .modal-shell.glass.is-settled {
   background-color: var(--modal-bg-solid);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+/* Gloss: a wide specular sweep across the top of the shell plus a bright
+   top rim. Lives on the SHELL, not the scroller, so it stays put while the
+   content moves underneath — this is what makes the panel read as polished
+   glass rather than a flat card. Static gradients, so no per-frame cost. */
+.modal-gloss {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 46%;
+  pointer-events: none;
+  z-index: 20;
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(
+      178deg,
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.1) 34%,
+      transparent 100%
+    ),
+    radial-gradient(
+      120% 90% at 22% -14%,
+      rgba(255, 255, 255, 0.4) 0%,
+      transparent 62%
+    );
+  /* fade the sweep out rather than ending on a hard edge */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 100%);
+}
+/* NOTE: no ::after here — .glass-sheen already owns that pseudo-element for
+   the reflection, and an element only has one. The bright top rim comes from
+   the inset highlight already in .glass's box-shadow stack, strengthened by
+   the gloss gradient above. */
+.dark .modal-gloss {
+  background: linear-gradient(
+      178deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.05) 34%,
+      transparent 100%
+    ),
+    radial-gradient(
+      120% 90% at 22% -14%,
+      rgba(255, 255, 255, 0.2) 0%,
+      transparent 62%
+    );
 }
 
 /* ============ Modal scrim ============
@@ -754,7 +948,7 @@ html.lenis body {
    re-blurring the page's own glass panels is invisible work. Kills ~8
    backdrop-filter surfaces for the whole time the modal is open. The dialog
    itself is excluded so it keeps its glass. */
-[data-modal-open] .glass:not([role="dialog"]),
+[data-modal-open] .glass:not(.modal-shell),
 [data-modal-open] .nav-floating.glass,
 [data-modal-open] .sphere-glass,
 [data-modal-open] .glass-refract {

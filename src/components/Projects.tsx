@@ -30,57 +30,57 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
-    title: "Aurora Banking",
-    desc: "A calm, trustworthy fintech experience with a fully tokenised design system.",
+    title: "SIMS",
+    desc: "Designed to simplify the way institutions manage inventory, track assets, and maintain accurate records through a secure, centralized platform.",
     detail:
-      "We rebuilt Aurora's mobile and web banking from the ground up around a single tokenised design system — one source of truth for colour, type, spacing and motion. The result is a calm, trustworthy product that ships new screens in days, not weeks, and reads beautifully in light and dark.",
-    meta: "2024 · Fintech · Product + Design System",
-    tech: ["React", "TypeScript", "Framer Motion"],
+      "Every institution has resources that keep learning moving forward.SIMS ensures those resources are always organized, accessible, and ready when they’re needed most.",
+    meta: "2026 · Product + Design System",
+    tech: ["React", "TypeScript","Javascript","Springboot","Java","AWS"],
     grad: "linear-gradient(140deg,#b9a8ff,#8fb4ff)",
     tagline:
-      "Rebuilding a retail bank's entire surface area on one tokenised foundation.",
+      "Smarter Inventory.Better Institutions",
     facts: [
-      { label: "Timeline", value: "9 months" },
-      { label: "Team", value: "2 designers · 4 engineers" },
+      { label: "Timeline", value: "3 months" },
+      { label: "Team", value: "2 designers · 3 engineers" },
       { label: "Engagement", value: "Product + Design System" },
-      { label: "Platforms", value: "iOS · Android · Web" },
+      { label: "Platforms", value: "Web" },
     ],
     stats: [
-      { value: "4.9★", label: "App Store rating" },
-      { value: "−62%", label: "Time to ship a screen" },
-      { value: "310+", label: "Components shipped" },
+      { value: "4.9★", label: "Customer rating" },
+      { value: "90 days", label: "Time to ship" },
+      { value: "24/7", label: "Support" },
     ],
     sections: [
       {
         heading: "The brief",
-        body: "Aurora had grown by acquisition. Three product teams had three different button components, two type scales and no shared definition of what 'primary' meant. Every new feature restarted the same arguments, and the apps had drifted far enough apart that customers noticed.",
+        body: "Every educational institution relies on resources that support learning. SIMS brings them together in one intelligent system, making inventory management simple, transparent, and reliable.",
       },
       {
         heading: "The challenge",
-        body: "A bank cannot pause to rebuild. We needed to replace the foundation underneath a product serving 400,000 daily users without a freeze, a big-bang release, or a single regression in a regulated flow.",
+        body: "Every academic year brings a new wave of students and records. As institutions grow, managing inventory through spreadsheets and manual processes becomes increasingly difficult. What starts as a simple tracking system soon turns into a challenge of maintaining accuracy, accountability, and efficiency across the entire campus.",
         bullets: [
-          "Three divergent codebases with no shared primitives",
-          "Strict accessibility and audit requirements on every money-moving screen",
-          "A dark mode that had been promised to customers twice and shipped zero times",
+          "Thousands of new student resources are added every year, making manual tracking time-consuming and error-prone.",
+          "Information stored across spreadsheets and departments leads to duplicate entries and delayed decision-making.",
+          "Routine tasks like attendance,exams,ranking and details management consume valuable time that could be spent on education and administration.",
         ],
       },
       {
         heading: "What we built",
-        body: "A three-layer token architecture — primitive, semantic, component — expressed once and compiled out to Swift, Kotlin and CSS. Design decisions now live in one place and propagate everywhere within a release cycle.",
+        body: "Every challenge presents an opportunity to innovate. We build thoughtful digital solutions that replace complexity with clarity, helping institutions work smarter, make informed decisions, and focus on what truly matters.",
         bullets: [
-          "310 components with visual regression coverage on every state",
-          "Light and dark derived from the same semantic layer, so neither can drift",
-          "Motion tokens that keep timing consistent across platforms",
-          "A migration codemod that rewrote 40% of legacy call sites automatically",
+          "Bring operational data together in one secure platform, eliminating scattered records and disconnected workflows.",
+          "Track, monitor, and manage every resource with real-time visibility, ensuring accuracy and accountability across the institution.",
+          "Replace repetitive manual tasks with streamlined digital workflows, allowing administrators to focus on education rather than paperwork.",
+          
         ],
       },
       {
         heading: "Under the hood",
-        body: "The web client is React and TypeScript with a strict component contract — every prop is a token reference, never a raw value, which makes an off-system colour a type error rather than a code review argument. Framer Motion drives transitions off the shared motion scale.",
+        body: "Powered by Spring Boot and React, SIMS is built on a secure, scalable architecture designed for modern institutions. With Spring Security safeguarding every interaction and a cloud-powered database managing information seamlessly, the platform delivers reliability, performance, and peace of mind.",
       },
       {
         heading: "The outcome",
-        body: "Dark mode shipped six weeks after the token layer landed, as a configuration change rather than a project. New screens that used to take a fortnight now reach production in three days, and the design team stopped being a bottleneck on routine work.",
+        body: "SIMS transformed inventory management into a streamlined digital experience, replacing manual processes with a centralized, secure, and efficient system. Institutions gain greater visibility, improved accountability, and the confidence to manage resources as they grow.",
       },
     ],
   },
@@ -371,15 +371,15 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
         transition={{ duration: 0.3 }}
         onClick={onClose}
       />
+      {/* SHELL — carries the glass. Deliberately does NOT scroll: the
+          .glass-sheen edge-catch and reflection are absolutely positioned, so
+          when they lived on the scrolling element they scrolled with the
+          content and their bottom edge drew a stray line across the text. */}
       <motion.div
         role="dialog"
         aria-modal="true"
         aria-label={p.title}
-        /* data-lenis-prevent tells the smooth-scroll library to ignore wheel
-           and touch events that start inside this element. Without it Lenis
-           preventDefault()s them for the page, and the dialog never scrolls. */
-        data-lenis-prevent
-        className={`glass glass-sheen glass-nodrift modal-scroll relative z-10 max-h-full w-full max-w-3xl overflow-y-auto overflow-x-hidden rounded-[28px]${
+        className={`glass glass-sheen glass-nodrift modal-shell relative z-10 flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-[28px]${
           settled ? " is-settled" : ""
         }`}
         initial={{ opacity: 0, y: 18, scale: 0.97 }}
@@ -388,20 +388,30 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
         onAnimationComplete={() => setSettled(true)}
       >
-        {/* close button rides along with the scroll container */}
+        {/* top gloss — a fixed sheen across the shell, independent of scroll */}
+        <span className="modal-gloss" aria-hidden />
+
+        {/* close button is pinned to the shell, so it never scrolls */}
         <button
           onClick={onClose}
           aria-label="Close"
-          /* solid fill rather than backdrop-blur — one less blur surface */
-          className="sticky left-full top-4 z-20 mr-4 grid h-9 w-9 shrink-0 place-items-center rounded-full text-white/90 transition-colors hover:bg-black/60"
+          className="absolute right-4 top-4 z-30 grid h-9 w-9 place-items-center rounded-full text-white/90 transition-colors hover:bg-black/60"
           style={{ background: "rgba(0,0,0,0.45)" }}
         >
           <X size={18} />
         </button>
 
+        {/* SCROLLER — only this moves */}
+        <div
+          /* data-lenis-prevent tells the smooth-scroll library to ignore wheel
+             and touch events that start inside this element. Without it Lenis
+             preventDefault()s them for the page and the dialog never scrolls. */
+          data-lenis-prevent
+          className="modal-scroll relative z-10 overflow-y-auto overflow-x-hidden"
+        >
         {/* cover */}
         <div
-          className="relative -mt-[52px] h-44 w-full sm:h-56"
+          className="relative h-44 w-full sm:h-56"
           style={{ background: p.grad }}
         >
           <div className="absolute inset-0 bg-white/10" />
@@ -518,8 +528,9 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
                 "linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #3a2fd0))",
             }}
           >
-            Visit project <ArrowUpRight size={17} />
+            Contact Now <ArrowUpRight size={17} />
           </button>
+        </div>
         </div>
       </motion.div>
     </div>,
@@ -557,9 +568,9 @@ export default function Projects() {
     <section id="projects" className="px-4 pt-24 sm:pt-32">
       <GlassCard className="mx-auto max-w-6xl px-6 py-12 sm:px-12 sm:py-16">
         <SectionHeading
-          eyebrow="Selected Work"
-          title="Products we're proud of"
-          subtitle="A few of the experiences we've designed and engineered end-to-end. Tap a card for the story."
+          eyebrow="Our Craft"
+          title="How we bring ideas to life "
+          subtitle="Every project begins with an idea. These are a few of the digital experiences we’ve imagined, designed, and engineered from concept to launch. Select a card to explore the journey."
         />
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

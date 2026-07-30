@@ -39,8 +39,8 @@ export default {
       },
       keyframes: {
         marquee: {
-          from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
+          from: { transform: "translate3d(0,0,0)" },
+          to: { transform: "translate3d(-50%,0,0)" },
         },
         floaty: {
           "0%,100%": { transform: "translateY(0)" },
