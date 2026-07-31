@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import GlassCard from "../components/GlassCard";
 import Reveal from "../components/Reveal";
+import ScrollTop from "../components/ScrollTop";
 import { navigate } from "../hooks/useRoute";
 import { useTheme } from "../hooks/useTheme";
 import { buildInquiryMail, sendInquiry } from "../lib/sendInquiry";
@@ -653,7 +654,7 @@ export default function GetStarted() {
                 <a
                   href={buildInquiryMail()}
                   className="font-medium underline decoration-1 underline-offset-2"
-                  style={{ color: "var(--accent)" }}
+                  style={{ color: "var(--link)" }}
                 >
                   thavashankarj@gmail.com
                 </a>
@@ -662,6 +663,8 @@ export default function GetStarted() {
           </aside>
         </Reveal>
       </div>
+
+      <ScrollTop />
     </main>
   );
 }

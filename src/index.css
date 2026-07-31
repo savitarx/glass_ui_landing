@@ -10,9 +10,12 @@
   --gx: 0.5;
   --gy: 0.22;
 
-  /* soft, low-glare page tone (was noticeably brighter) */
-  --page-1: #f6f5f8;
-  --page-2: #eeedf3;
+  /* Softer still. A near-white page reflects a lot of light on a bright
+     display; dropping it a few points takes the glare off without making the
+     UI look grey, and it gives the glass panels something to sit *on* so they
+     read as glossy rather than blending into a white sheet. */
+  --page-1: #e9e7ef;
+  --page-2: #dfdde8;
 
   /* pastel environment light sources (soft blue · lavender · violet · white)
      toned down alongside the calmer page colour so the field reads soft
@@ -39,15 +42,25 @@
   /* Translucent enough that the blurred pastel field reads THROUGH the panel
      (that bleed-through is the frost), dense enough that dark text still has a
      light surface. Verified: body copy stays well above AA. */
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-bg-strong: rgba(255, 255, 255, 0.52);
-  --glass-lite-bg: rgba(255, 255, 255, 0.46);
-  --glass-inner: rgba(255, 255, 255, 0.58);
+  /* Card interiors are dialled back from near-white so they stop glaring.
+     They stay LIGHT (dark text keeps a light surface — contrast is verified
+     below AA-safe), but the fill is now a soft off-white with a hint of the
+     page's cool tone, which reads as glass rather than paper. */
+  /* LESS white, MORE glass. Lowering the fill lets the blurred, tinted page
+     read through the panel — that bleed-through is what makes it look like
+     glass — while the specular values below stay high so the surface still
+     catches light. Brightness and glossiness pull in opposite directions here:
+     a bright fill looks like paper, a thin fill looks like glass. */
+  --glass-bg: rgba(255, 255, 255, 0.2);
+  --glass-bg-strong: rgba(255, 255, 255, 0.3);
+  --glass-lite-bg: rgba(255, 255, 255, 0.26);
+  --glass-inner: rgba(255, 255, 255, 0.34);
   /* used where backdrop-filter is unavailable (low-perf tier) */
-  --glass-solid: rgba(252, 252, 255, 0.9);
+  --glass-solid: rgba(243, 242, 249, 0.92);
+  /* specular stays strong — this is the gloss */
   --glass-hi: rgba(255, 255, 255, 1);
-  --glass-reflection: rgba(255, 255, 255, 0.78);
-  --glass-blob: rgba(255, 255, 255, 0.62);
+  --glass-reflection: rgba(255, 255, 255, 0.7);
+  --glass-blob: rgba(255, 255, 255, 0.58);
 
   /* optical edges — bright rim light catches the glass edge */
   --edge-bright: rgba(255, 255, 255, 1);
@@ -83,6 +96,10 @@
   --nav-pill-bg: rgba(255, 255, 255, 0.7);
   --nav-pill-solid: rgba(252, 253, 255, 0.96);
   --soft-border: #e8e7ec;
+  /* Inline links. The accent is tuned for white-on-accent buttons; used as
+     TEXT on a panel it measured 3.64:1 in dark mode, so links get their own
+     value that clears AA in both themes. */
+  --link: #4f3ed6;
   /* form fields get their own fill/border so they always sit *apart* from the
      card behind them, in either theme. The border is deliberately a touch
      stronger than --soft-border so every box has a visible outline. */
@@ -137,6 +154,7 @@
   --nav-pill-bg: rgba(150, 162, 214, 0.24);
   --nav-pill-solid: rgba(30, 32, 46, 0.95);
   --soft-border: rgba(255, 255, 255, 0.16);
+  --link: #c3b8ff;
   /* dark fields: a slightly lifted fill + a clearly visible rim, so the boxes
      read as inputs instead of blending into the card */
   --field-bg: rgba(255, 255, 255, 0.07);
@@ -161,7 +179,12 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  /* 100vh is the *large* viewport on mobile, so it disagrees with the visible
+     area whenever the browser chrome is showing — that mismatch is what made
+     the layout jump during pinch-zoom and address-bar transitions. `svh` is
+     the small viewport, which is stable. vh stays as the fallback. */
   min-height: 100vh;
+  min-height: 100svh;
   transition: background 520ms cubic-bezier(0.22, 1, 0.36, 1),
     color 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -192,24 +215,41 @@ body {
   outline: none;
 }
 
-/* Skip-to-content link — appears when focused (nav auto-hides, so this matters) */
+/* Skip-to-content link.
+   It is a keyboard affordance and must never be visible or focusable to touch
+   users — previously it could be reached on mobile and appeared clipped at the
+   screen edge. It is now fully hidden until it receives KEYBOARD focus, and
+   when shown it is inset far enough to clear rounded/notched screen corners. */
 .skip-link {
   position: fixed;
-  top: 12px;
-  left: 12px;
+  top: 16px;
+  left: 16px;
   z-index: 120;
-  transform: translateY(-160%);
   padding: 12px 20px;
   border-radius: 999px;
   font-weight: 600;
+  font-size: 0.92rem;
+  white-space: nowrap;
   color: #fff;
   background: linear-gradient(180deg, var(--accent), var(--accent-2));
   box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--accent) 80%, transparent);
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  /* clipped out of the layout entirely — cannot be seen or tapped */
+  clip-path: inset(50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 .skip-link:focus-visible {
-  transform: translateY(0);
+  clip-path: none;
+  opacity: 1;
+  pointer-events: auto;
   outline-offset: 2px;
+}
+/* Touch devices have no keyboard tab order to skip — remove it completely. */
+@media (pointer: coarse) {
+  .skip-link {
+    display: none;
+  }
 }
 
 html.lenis,
@@ -251,18 +291,29 @@ html.lenis body {
     isolation: isolate;
     background-color: var(--glass-bg);
     background-image:
-      radial-gradient(
-        135% 100% at 22% 0%,
-        var(--glass-hi) 0%,
-        transparent 42%
-      ),
+      /* GLOSS: a tight specular band across the top edge — the highlight you
+         get on a real pane. This is what reads as "polished" now that the
+         fill itself is thin. */
       linear-gradient(
-        135deg,
-        var(--glass-reflection) 0%,
-        transparent 30%,
-        transparent 68%,
-        color-mix(in srgb, var(--glass-reflection) 45%, transparent) 100%
+        180deg,
+        color-mix(in srgb, var(--glass-hi) 62%, transparent) 0%,
+        color-mix(in srgb, var(--glass-hi) 16%, transparent) 8%,
+        transparent 22%
       ),
+      /* broad top-left key light */
+        radial-gradient(
+          135% 100% at 22% 0%,
+          var(--glass-hi) 0%,
+          transparent 46%
+        ),
+      /* diagonal sheen across the face */
+        linear-gradient(
+          135deg,
+          var(--glass-reflection) 0%,
+          transparent 32%,
+          transparent 66%,
+          color-mix(in srgb, var(--glass-reflection) 50%, transparent) 100%
+        ),
       linear-gradient(
         0deg,
         color-mix(in srgb, var(--accent) 7%, transparent) 0%,
@@ -276,8 +327,11 @@ html.lenis body {
          · the low-perf tier drops it entirely and compensates with a denser
            fill, so phones and weak GPUs never pay for it
        Result: frosted where you can see it, free everywhere you can't. */
-    backdrop-filter: blur(11px) saturate(155%);
-    -webkit-backdrop-filter: blur(11px) saturate(155%);
+    /* Deeper frost now that the fill is thin — more of the page shows through,
+       so it needs more blur to read as glass rather than as tinted plastic.
+       Affordable because only the 0–1 panels actually on screen ever blur. */
+    backdrop-filter: blur(18px) saturate(165%);
+    -webkit-backdrop-filter: blur(18px) saturate(165%);
     border: 1px solid transparent;
     /* soft, diffused elevation (large blur radius, low opacity) + a bright
        top-edge inner highlight so the glass catches light along its rim. */
@@ -802,6 +856,47 @@ html.lenis body {
   );
 }
 
+/* ---- back-to-top pill (pages + project modal) ---- */
+.scroll-top {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  /* respects notches / home indicators */
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 200ms ease, box-shadow 220ms ease;
+  will-change: transform;
+}
+.scroll-top:hover {
+  transform: translateY(-2px);
+  color: var(--accent);
+}
+.scroll-top:active {
+  transform: translateY(0) scale(0.96);
+}
+/* inside a dialog it is positioned against the panel, not the viewport */
+.scroll-top--in-modal {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 40;
+}
+@media (min-width: 640px) {
+  .scroll-top {
+    width: 50px;
+    height: 50px;
+  }
+}
+
 /* submit spinner — a bordered circle, rotation only (compositor-only) */
 .gs-spinner {
   width: 16px;
@@ -974,7 +1069,10 @@ html.lenis body {
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: color-mix(in srgb, var(--text-dim) 45%, transparent)
     transparent;
-  overscroll-behavior: contain; /* don't chain scrolling to the page behind */
+  /* `none`, not `contain`: contain still allows the elastic rubber-band, which
+     is what exposed empty space above the cover when you force-scrolled past
+     the top. `none` blocks the bounce as well as the scroll chaining. */
+  overscroll-behavior: none;
   /* let the browser own vertical panning on touch → native-speed, off the
      main thread. Without this the gesture waits on JS before it can move. */
   touch-action: pan-y;
@@ -1021,6 +1119,11 @@ html.lenis body {
   z-index: -1; /* above the pastel background, behind every UI element */
   pointer-events: none;
   overflow: hidden;
+  /* Pinch-zoom moves the visual viewport over a fixed layout viewport, which
+     made these full-screen layers appear to drift and flicker for a moment.
+     Containing paint+layout keeps each one a self-contained raster that the
+     compositor just re-positions. */
+  contain: layout paint size style;
 }
 .orb {
   position: absolute;

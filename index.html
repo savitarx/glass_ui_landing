@@ -2,7 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover keeps the fixed background layers flush behind
+         notches/rounded corners. Zoom is deliberately NOT disabled (that would
+         be an accessibility regression) — the layout is made zoom-stable in
+         CSS instead, via svh units and containment on the fixed layers. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Invisos</title>
     <!-- Apply the theme BEFORE first paint to prevent a flash on refresh -->
     <script>
@@ -17,10 +24,10 @@
           var root = document.documentElement;
           if (t === "dark") root.classList.add("dark");
           root.style.colorScheme = t;
-          root.style.background = t === "dark" ? "#16161f" : "#F6F5F8";
+          root.style.background = t === "dark" ? "#16161f" : "#E9E7EF";
           var m = document.createElement("meta");
           m.name = "theme-color";
-          m.content = t === "dark" ? "#16161f" : "#F6F5F8";
+          m.content = t === "dark" ? "#16161f" : "#E9E7EF";
           document.head.appendChild(m);
         } catch (e) {}
       })();

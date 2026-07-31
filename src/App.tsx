@@ -20,6 +20,7 @@ import About from "./components/About";
 import Help from "./components/Help";
 import Footer from "./components/Footer";
 import GetStarted from "./pages/GetStarted";
+import Legal from "./pages/Legal";
 import { useRoute } from "./hooks/useRoute";
 
 function Shell() {
@@ -88,6 +89,10 @@ function Shell() {
   // The Get Started page is its own view — same background, orb and theme, but
   // no one-page nav or marketing sections around it.
   const isGetStarted = route === "/get-started";
+  const isPrivacy = route === "/privacy";
+  const isTerms = route === "/terms";
+  // any standalone page: rendered without the one-page nav or marketing sections
+  const isStandalone = isGetStarted || isPrivacy || isTerms;
 
   return (
     <>
@@ -100,9 +105,11 @@ function Shell() {
       <Background />
       <AmbientOrb />
 
-      {isGetStarted ? (
+      {isStandalone ? (
         <div className={`stage${showing ? "" : " stage--in"}`}>
-          <GetStarted />
+          {isGetStarted && <GetStarted />}
+          {isPrivacy && <Legal kind="privacy" />}
+          {isTerms && <Legal kind="terms" />}
         </div>
       ) : (
         <>

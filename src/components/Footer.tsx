@@ -59,9 +59,17 @@ export default function Footer() {
                   <li key={l}>
                     <button
                       onClick={() => {
-                        // Contact is its own page now, not a section
+                        // these are standalone pages, not sections
                         if (l === "Contact") {
                           navigate("/get-started");
+                          return;
+                        }
+                        if (l === "Privacy") {
+                          navigate("/privacy");
+                          return;
+                        }
+                        if (l === "Terms") {
+                          navigate("/terms");
                           return;
                         }
                         scrollToId(

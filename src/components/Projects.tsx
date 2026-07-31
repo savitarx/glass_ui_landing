@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, X } from "lucide-react";
@@ -6,6 +6,7 @@ import GlassCard from "./GlassCard";
 import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
 import TiltCard from "./TiltCard";
+import ScrollTop from "./ScrollTop";
 
 type Fact = { label: string; value: string };
 type Stat = { value: string; label: string };
@@ -348,6 +349,7 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
      moving/scaling element re-computes the filter every frame — gating it keeps
      open/close buttery while still giving real glass while you read. */
   const [settled, setSettled] = useState(false);
+  const scrollerRef = useRef<HTMLDivElement>(null);
   // Fallback: don't rely solely on the animation callback firing — if it's ever
   // missed the panel would never get its glass back.
   useEffect(() => {
@@ -406,6 +408,7 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
           /* data-lenis-prevent tells the smooth-scroll library to ignore wheel
              and touch events that start inside this element. Without it Lenis
              preventDefault()s them for the page and the dialog never scrolls. */
+          ref={scrollerRef}
           data-lenis-prevent
           className="modal-scroll relative z-10 overflow-y-auto overflow-x-hidden"
         >
@@ -532,6 +535,9 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
           </button>
         </div>
         </div>
+
+        {/* returns the dialog's own scroller to the top, not the page */}
+        <ScrollTop scroller={scrollerRef} threshold={260} className="scroll-top--in-modal" />
       </motion.div>
     </div>,
     document.body
