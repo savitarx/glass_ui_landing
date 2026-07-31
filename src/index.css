@@ -781,24 +781,25 @@ html.lenis body {
      inverted to ~1 vs 22 in dark), so feathering the edges to transparent is
      enough to make the boundary disappear. A mask is composited, so this is
      free. */
+  /* The mascot fills 89% × 93% of this frame (measured), so only a sliver of
+     plate exists to feather — the radii complete just inside the box and the
+     opaque core covers the character, so nothing is clipped. */
   -webkit-mask-image: radial-gradient(
-    ellipse 86% 84% at 50% 47%,
-    #000 40%,
-    rgba(0, 0, 0, 0.55) 70%,
-    transparent 92%
+    ellipse 50% 52% at 50% 50%,
+    #000 90%,
+    transparent 100%
   );
   mask-image: radial-gradient(
-    ellipse 86% 84% at 50% 47%,
-    #000 40%,
-    rgba(0, 0, 0, 0.55) 70%,
-    transparent 92%
+    ellipse 50% 52% at 50% 50%,
+    #000 90%,
+    transparent 100%
   );
 
-  /* Colour-match the plate to the page: the source plate is rgb(254) and the
-     light page is rgb(246,245,248), so scaling luminance by 246/254 lands the
-     plate on the page tone almost exactly. Combined with the feather above,
-     the rectangle has no edge left to see. */
-  filter: brightness(0.968);
+  /* Colour-match the plate to the page. Source plate is rgb(255,253,254) and
+     the light page is rgb(233,231,239): 233/254 ≈ 0.92. This value is tied to
+     --page-1 — if the page tone changes, this must change with it, which is
+     exactly why the border reappeared when the page was darkened. */
+  filter: brightness(0.92);
 }
 /* DARK MODE — a documented limitation, not an oversight.
    The source's plate and the mascot's body are the SAME pixel value
