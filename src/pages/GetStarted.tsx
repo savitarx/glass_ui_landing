@@ -15,7 +15,7 @@ import Reveal from "../components/Reveal";
 import ScrollTop from "../components/ScrollTop";
 import { navigate } from "../hooks/useRoute";
 import { useTheme } from "../hooks/useTheme";
-import { buildInquiryMail, sendInquiry } from "../lib/sendInquiry";
+import { RECIPIENT, buildInquiryMail, sendInquiry } from "../lib/sendInquiry";
 
 /* ------------------------------------------------------------------ data */
 
@@ -183,8 +183,8 @@ export default function GetStarted() {
   const [sent, setSent] = useState(false);
   const [touched, setTouched] = useState(false);
   const [sending, setSending] = useState(false);
-  /** how the inquiry actually went out — changes the success copy */
-  const [via, setVia] = useState<"server" | "mail-client">("server");
+  /** set when delivery failed — shown inline so the form is never a dead end */
+  const [sendError, setSendError] = useState("");
 
   const ta = useRef<HTMLTextAreaElement>(null);
 
@@ -241,6 +241,7 @@ export default function GetStarted() {
     e.preventDefault();
     setTouched(true);
     if (!canSubmit || sending) return;
+    setSendError("");
     setSending(true);
     const result = await sendInquiry({
       name,
@@ -253,8 +254,13 @@ export default function GetStarted() {
       assets,
       reference,
     });
-    setVia(result.via);
     setSending(false);
+    if (!result.ok) {
+      // stay on the form with everything the visitor typed still in place
+      setSendError(result.message);
+      return;
+    }
+    setSendError("");
     setSent(true);
   };
 
@@ -305,17 +311,8 @@ export default function GetStarted() {
             transition={{ delay: 0.38, duration: 0.5 }}
             className="mx-auto mt-4 max-w-md text-[0.95rem] leading-relaxed text-soft sm:text-[1rem]"
           >
-            {via === "server" ? (
-              <>
-                We've received your project inquiry. Our team will review it and
-                get back to you within 24 hours.
-              </>
-            ) : (
-              <>
-                Your inquiry is ready in your email app — press send and it's on
-                its way. We'll get back to you within 24 hours.
-              </>
-            )}
+            We've received your project inquiry. Our team will review it and get
+            back to you within 24 hours.
           </motion.p>
 
           <motion.div
@@ -587,6 +584,27 @@ export default function GetStarted() {
                     />
                   )}
                 </button>
+                <AnimatePresence>
+                  {sendError && (
+                    <motion.p
+                      role="alert"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="mt-4 text-[0.85rem]"
+                      style={{ color: "#e0576f" }}
+                    >
+                      {sendError}{" "}
+                      <a
+                        href={`mailto:${RECIPIENT}`}
+                        className="font-medium underline decoration-1 underline-offset-2"
+                        style={{ color: "var(--link)" }}
+                      >
+                        {RECIPIENT}
+                      </a>
+                    </motion.p>
+                  )}
+                </AnimatePresence>
                 <AnimatePresence>
                   {touched && !canSubmit && (
                     <motion.p

@@ -10,7 +10,9 @@
  * mail client with everything pre-filled. The form is never a dead end.
  */
 
-export const RECIPIENT = "invisos99@gmai.com";
+/* typo fix: was "invisos99@gmai.com" — missing the "l", so every fallback
+   mail and every displayed address pointed at a non-existent domain. */
+export const RECIPIENT = "invisos99@gmail.com";
 
 const ENDPOINT = "/api/inquiry";
 
@@ -26,7 +28,10 @@ export type Inquiry = {
   reference: string;
 };
 
-export type SendResult = { ok: true; via: "server" | "mail-client" };
+export type SendResult =
+  | { ok: true }
+  /** delivery failed — the form stays put and shows why */
+  | { ok: false; message: string };
 
 const dash = "—".repeat(34);
 
@@ -72,8 +77,10 @@ export function buildInquiryMail(i?: Partial<Inquiry>): string {
 }
 
 /**
- * Tries the server first. Resolves with how it was delivered so the UI can
- * tell the visitor whether to press send in their mail client.
+ * Sends the inquiry from THIS page. The visitor is never handed off to a mail
+ * app — the previous mailto fallback did exactly that, which yanked them out of
+ * the site mid-flow. If delivery fails we stay put and report it, so the person
+ * can retry or copy the address, and nothing they typed is lost.
  */
 export async function sendInquiry(i: Inquiry): Promise<SendResult> {
   try {
@@ -82,10 +89,30 @@ export async function sendInquiry(i: Inquiry): Promise<SendResult> {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...i, _trap: "" }),
     });
-    if (res.ok) return { ok: true, via: "server" };
+
+    if (res.ok) return { ok: true };
+
+    // the endpoint answered but refused — surface its reason when it gave one
+    let message = "";
+    try {
+      const data = (await res.json()) as { error?: string };
+      message = data?.error ?? "";
+    } catch {
+      /* non-JSON response */
+    }
+    if (res.status === 422) {
+      return { ok: false, message: message || "Please check your name and email." };
+    }
+    return {
+      ok: false,
+      message:
+        "We couldn't send that just now. Please try again, or email us directly.",
+    };
   } catch {
-    // network error / endpoint absent → fall through to the mail client
+    return {
+      ok: false,
+      message:
+        "Network error — please check your connection and try again, or email us directly.",
+    };
   }
-  window.location.href = buildInquiryMail(i);
-  return { ok: true, via: "mail-client" };
 }

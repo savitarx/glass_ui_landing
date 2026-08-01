@@ -178,6 +178,16 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Pulling past the top/bottom on a phone rubber-bands the page away from the
+     viewport and exposes whatever sits behind it — which is what showed up as
+     a stray element when over-pulling. Blocking the bounce keeps the page
+     locked to its own bounds. */
+  overscroll-behavior-y: none;
+  /* the page itself must be opaque, so nothing behind it can ever be revealed */
+  background: var(--page-1);
+}
+body {
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -975,18 +985,21 @@ html.lenis body {
    clearly as a separate control: smaller, tucked further into the corner, and
    opaque enough that text never shows through it. */
 @media (max-width: 639px) {
-  .scroll-top {
+  /* Page-level back-to-top is removed on phones — it floated over the content
+     and these pages are short enough to flick back. Only the project modal
+     keeps it, because that dialog scrolls a long case study inside a fixed
+     panel where there is nowhere else to go. */
+  .scroll-top:not(.scroll-top--in-modal) {
+    display: none;
+  }
+  .scroll-top--in-modal {
     width: 40px;
     height: 40px;
-    right: max(12px, env(safe-area-inset-right));
-    bottom: max(12px, env(safe-area-inset-bottom));
+    right: 10px;
+    bottom: 10px;
     background-color: var(--glass-solid);
     box-shadow: 0 8px 22px -8px rgba(20, 20, 40, 0.4),
       0 0 0 1px var(--hairline);
-  }
-  .scroll-top--in-modal {
-    right: 10px;
-    bottom: 10px;
   }
 }
 
@@ -1270,9 +1283,19 @@ html.lenis body {
 .dark .orb__hi {
   opacity: 0.42;
 }
-/* Phones / weak devices: keep it, it is cheap, just calm it down. */
-[data-perf="low"] .orb__body {
-  opacity: 0.42;
+/* Phones: the orb is removed entirely.
+   It is a fixed, page-sized layer, so during a fast programmatic scroll (e.g.
+   tapping "Home") it slides across the screen behind the translucent panels
+   and reads as a stray glass blob drifting past. The ambient light field
+   already carries the background on small screens, and dropping a full-screen
+   layer is a straight GPU saving too. */
+[data-perf="low"] .orb-layer {
+  display: none;
+}
+@media (max-width: 767px) {
+  .orb-layer {
+    display: none;
+  }
 }
 
 /* ============ Glass loading screen ============ */
