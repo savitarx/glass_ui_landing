@@ -21,7 +21,7 @@ const REVIEWS = [
   },
   {
     quote:
-      "Our users constantly tell us the app simply feels better than anything else.",
+      "Our users constantly tell us the app simply feels better than anything else.I got full extended support for minimum price",
     name: "Satheeshkumar GJ",
     role: "Freelancer",
     initials: "GJ",
