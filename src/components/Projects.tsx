@@ -7,6 +7,7 @@ import SectionHeading from "./SectionHeading";
 import Reveal from "./Reveal";
 import TiltCard from "./TiltCard";
 import ScrollTop from "./ScrollTop";
+import { navigate } from "../hooks/useRoute";
 
 type Fact = { label: string; value: string };
 type Stat = { value: string; label: string };
@@ -32,11 +33,11 @@ type Project = {
 const PROJECTS: Project[] = [
   {
     title: "SIMS",
-    desc: "Designed to simplify the way institutions manage inventory, track assets, and maintain accurate records through a secure, centralized platform.",
+    desc: " Centralized student records management system.",
     detail:
       "Every institution has resources that keep learning moving forward.SIMS ensures those resources are always organized, accessible, and ready when they’re needed most.",
     meta: "2026 · Product + Design System",
-    tech: ["React", "TypeScript","Javascript","Springboot","Java","AWS"],
+    tech: ["React", "Springboot","AWS"],
     grad: "linear-gradient(140deg,#b9a8ff,#8fb4ff)",
     tagline:
       "Smarter Inventory.Better Institutions",
@@ -524,12 +525,15 @@ function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
             </div>
           </div>
 
+          {/* had no onClick at all, so it did nothing. Closes the dialog first
+              so the scroll-lock is released before the route changes. */}
           <button
-            className="mt-9 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.9rem] font-medium text-white sm:text-[0.95rem]"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #3a2fd0))",
+            type="button"
+            onClick={() => {
+              onClose();
+              navigate("/get-started");
             }}
+            className="gs-submit mt-9 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.9rem] font-medium text-white sm:text-[0.95rem]"
           >
             Contact Now <ArrowUpRight size={17} />
           </button>
@@ -571,7 +575,7 @@ export default function Projects() {
   }, [active]);
 
   return (
-    <section id="projects" className="px-4 pt-24 sm:pt-32">
+    <section id="projects" className="px-4 pt-14 sm:pt-20">
       <GlassCard className="mx-auto max-w-6xl px-6 py-12 sm:px-12 sm:py-16">
         <SectionHeading
           eyebrow="Our Craft"

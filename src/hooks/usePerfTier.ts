@@ -41,6 +41,22 @@ export function usePerfTier(): PerfTier {
     document.documentElement.dataset.perf = tier;
   }, [tier]);
 
+  /* Re-evaluate the size-based half of the guess when the viewport changes.
+     It used to be read only once at mount, so resizing a window (or rotating a
+     phone) left the tier stale — measured reporting "high" at a 418px viewport,
+     which meant a phone-sized screen kept all the desktop-only effects. */
+  useEffect(() => {
+    const sync = () => {
+      const small =
+        window.matchMedia("(max-width: 900px)").matches ||
+        window.matchMedia("(pointer: coarse)").matches;
+      if (small) setTier("low");
+    };
+    const ro = new ResizeObserver(sync);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, []);
+
   // live FPS probe — only worth running if we currently think we're "high"
   useEffect(() => {
     if (tier !== "high") return;

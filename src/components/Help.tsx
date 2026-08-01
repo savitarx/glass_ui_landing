@@ -73,7 +73,7 @@ function Item({ q, a }: { q: string; a: string }) {
 
 export default function Help() {
   return (
-    <section id="help" className="px-4 pt-24 sm:pt-32">
+    <section id="help" className="px-4 pt-14 sm:pt-20">
       <GlassCard className="mx-auto max-w-4xl px-6 py-12 sm:px-12 sm:py-16">
         <SectionHeading
           eyebrow="Help"

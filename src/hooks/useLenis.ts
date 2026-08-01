@@ -27,14 +27,16 @@ export function useLenis() {
     let idle = 0;
     const loop = (time: number) => {
       lenis.raf(time);
-      // `velocity` is ~0 once the smoothing has caught up with the real scroll
-      if (Math.abs(lenis.velocity) < 0.05) {
-        if (++idle > 20) {
-          raf = 0;
-          return; // park
-        }
-      } else {
+      /* Park only when Lenis is genuinely idle. Checking velocity alone was not
+         enough: a programmatic scrollTo (nav link, back-to-top) begins at ~0
+         velocity, so the loop could park itself mid-animation and the scroll
+         would stall. `isScrolling` stays true for the whole animation. */
+      const busy = lenis.isScrolling || Math.abs(lenis.velocity) >= 0.05;
+      if (busy) {
         idle = 0;
+      } else if (++idle > 40) {
+        raf = 0;
+        return; // park
       }
       raf = requestAnimationFrame(loop);
     };
@@ -68,9 +70,10 @@ export function scrollToId(id: string) {
   if (!el) return;
   const lenis = (window as unknown as { __lenis?: Lenis }).__lenis;
   if (lenis) {
-    lenis.scrollTo(el, { offset: -110, duration: 1.25 });
-    // the rAF loop parks itself when idle — make sure it's running
+    // wake FIRST so the loop is already running when the animation starts —
+    // otherwise the first frame of the scroll is dropped and it feels laggy
     (window as unknown as { __lenisWake?: () => void }).__lenisWake?.();
+    lenis.scrollTo(el, { offset: -110, duration: 1.25 });
   } else {
     // low-perf / reduced-motion path: no Lenis instance at all
     const y = el.getBoundingClientRect().top + window.scrollY - 110;

@@ -3,6 +3,7 @@ import { ThemeProvider, useTheme } from "./hooks/useTheme";
 import { useLenis } from "./hooks/useLenis";
 import { usePointerGlow } from "./hooks/usePointerGlow";
 import { usePerfTier } from "./hooks/usePerfTier";
+import { useMascotMatch } from "./hooks/useMascotMatch";
 import Background from "./components/Background";
 // NOTE: the WebGL version (GlassBlob3D.tsx) is kept in the repo but no longer
 // imported — MeshTransmissionMaterial re-rendered the scene several times per
@@ -29,6 +30,8 @@ function Shell() {
   usePointerGlow();
   // sets <html data-perf="high|low"> — CSS uses it to drop the costly blurs
   usePerfTier();
+  // keeps the light-mode mascot plate matched to the page tone
+  useMascotMatch();
   const route = useRoute();
 
   // Track connectivity — while offline, the loader stays up (slow ticks + msg).
@@ -105,17 +108,22 @@ function Shell() {
       <Background />
       <AmbientOrb />
 
-      {isStandalone ? (
-        <div className={`stage${showing ? "" : " stage--in"}`}>
-          {isGetStarted && <GetStarted />}
-          {isPrivacy && <Legal kind="privacy" />}
-          {isTerms && <Legal kind="terms" />}
-        </div>
-      ) : (
-        <>
-          <Navbar />
-          {/* .stage runs the "dive into the page" zoom once the loader finishes */}
-          <div className={`stage${showing ? "" : " stage--in"}`}>
+      {!isStandalone && <Navbar />}
+
+      {/* ONE .stage element for every route.
+          There used to be a separate .stage inside each branch, so changing
+          route unmounted one and mounted the other — which RESTARTED the
+          page-reveal animation. That animation has a 560ms delay with `both`
+          fill, so the incoming page sat at opacity:0 for over half a second:
+          the blank flash seen when navigating on mobile. Keeping the element
+          mounted means the reveal plays once, on first load, and never again. */}
+      <div className={`stage${showing ? "" : " stage--in"}`}>
+        {isGetStarted && <GetStarted />}
+        {isPrivacy && <Legal kind="privacy" />}
+        {isTerms && <Legal kind="terms" />}
+
+        {!isStandalone && (
+          <>
             <main>
               <Hero />
               <div className="section-cv">
@@ -137,9 +145,9 @@ function Shell() {
             <div className="section-cv">
               <Footer />
             </div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </>
   );
 }

@@ -10,7 +10,7 @@ const COLS = [
 
 export default function Footer() {
   return (
-    <footer className="px-4 pb-10 pt-24 sm:pt-32">
+    <footer className="px-4 pb-10 pt-14 sm:pt-20">
       <GlassCard className="mx-auto max-w-6xl px-6 py-12 sm:px-12">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>

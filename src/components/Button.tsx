@@ -42,17 +42,12 @@ export default function Button({
           : undefined
       }
     >
-      {/* glass reflection: a soft top-edge sheen sitting over the fill */}
+      {/* Glass optics, layered over the SAME fill — the colour is untouched.
+          A hard specular band across the top, a bright rim, a shallow inner
+          shadow underneath for thickness, and a diagonal wipe. Pure gradients,
+          so this costs nothing to composite. */}
       {variant === "primary" && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 rounded-full"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 38%, transparent 62%)",
-            boxShadow: "inset 0 1px 1px rgba(255,255,255,0.5)",
-          }}
-        />
+        <span aria-hidden className="btn-gloss" />
       )}
       <span className="relative z-[1] inline-flex items-center gap-2">
         {children}

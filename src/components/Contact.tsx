@@ -61,7 +61,7 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="px-4 pt-24 sm:pt-32">
+    <section id="contact" className="px-4 pt-14 sm:pt-20">
       <GlassCard className="mx-auto max-w-6xl px-6 py-12 sm:px-12 sm:py-16">
         <SectionHeading
           eyebrow="Contact"

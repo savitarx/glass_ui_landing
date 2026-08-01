@@ -14,8 +14,8 @@
      display; dropping it a few points takes the glare off without making the
      UI look grey, and it gives the glass panels something to sit *on* so they
      read as glossy rather than blending into a white sheet. */
-  --page-1: #e9e7ef;
-  --page-2: #dfdde8;
+  --page-1: #e3e1ea;
+  --page-2: #d8d6e2;
 
   /* pastel environment light sources (soft blue · lavender · violet · white)
      toned down alongside the calmer page colour so the field reads soft
@@ -59,6 +59,10 @@
   --glass-solid: rgba(243, 242, 249, 0.92);
   /* specular stays strong — this is the gloss */
   --glass-hi: rgba(255, 255, 255, 1);
+  /* gloss strengths — light mode can take a hard specular */
+  --gloss-edge: 85%;
+  --gloss-fade: 30%;
+  --gloss-key: 70%;
   --glass-reflection: rgba(255, 255, 255, 0.7);
   --glass-blob: rgba(255, 255, 255, 0.58);
 
@@ -127,6 +131,11 @@
   --glass-lite-bg: rgba(150, 162, 214, 0.16);
   --glass-inner: rgba(255, 255, 255, 0.1);
   --glass-hi: rgba(255, 255, 255, 0.36);
+  /* Dark mode: the same wash sat over headings and logos and washed them out.
+     A crisp rim highlight instead of a broad haze — glossier AND legible. */
+  --gloss-edge: 90%;
+  --gloss-fade: 22%;
+  --gloss-key: 28%;
   --glass-reflection: rgba(255, 255, 255, 0.24);
   --glass-blob: rgba(255, 255, 255, 0.22);
 
@@ -291,20 +300,23 @@ html.lenis body {
     isolation: isolate;
     background-color: var(--glass-bg);
     background-image:
-      /* GLOSS: a tight specular band across the top edge — the highlight you
-         get on a real pane. This is what reads as "polished" now that the
-         fill itself is thin. */
+      /* GLOSS: a specular band hugging the TOP EDGE only.
+         It is deliberately short (fades out by 10%) and its strength is a
+         per-theme token. The previous version spilled a bright wash a fifth of
+         the way down the panel, which in dark mode sat on top of headings and
+         logos and washed them out. Keeping the highlight at the rim gives more
+         gloss, not less, because it reads as a lit edge rather than a haze. */
       linear-gradient(
         180deg,
-        color-mix(in srgb, var(--glass-hi) 62%, transparent) 0%,
-        color-mix(in srgb, var(--glass-hi) 16%, transparent) 8%,
-        transparent 22%
+        color-mix(in srgb, var(--glass-hi) var(--gloss-edge) , transparent) 0%,
+        color-mix(in srgb, var(--glass-hi) var(--gloss-fade), transparent) 4%,
+        transparent 10%
       ),
-      /* broad top-left key light */
+      /* broad top-left key light — pulled in so it cannot reach body copy */
         radial-gradient(
-          135% 100% at 22% 0%,
-          var(--glass-hi) 0%,
-          transparent 46%
+          120% 70% at 20% 0%,
+          color-mix(in srgb, var(--glass-hi) var(--gloss-key), transparent) 0%,
+          transparent 40%
         ),
       /* diagonal sheen across the face */
         linear-gradient(
@@ -330,8 +342,12 @@ html.lenis body {
     /* Deeper frost now that the fill is thin — more of the page shows through,
        so it needs more blur to read as glass rather than as tinted plastic.
        Affordable because only the 0–1 panels actually on screen ever blur. */
-    backdrop-filter: blur(18px) saturate(165%);
-    -webkit-backdrop-filter: blur(18px) saturate(165%);
+    /* 14px, down from 18px. backdrop-filter cost scales with radius and it is
+       the single heaviest thing during a scroll; the gloss gradients above now
+       carry most of the "glass" read, so the extra 4px was buying very little
+       for a real per-frame cost. */
+    backdrop-filter: blur(14px) saturate(165%);
+    -webkit-backdrop-filter: blur(14px) saturate(165%);
     border: 1px solid transparent;
     /* soft, diffused elevation (large blur radius, low opacity) + a bright
        top-edge inner highlight so the glass catches light along its rim. */
@@ -680,14 +696,70 @@ html.lenis body {
   border-color: var(--accent);
 }
 
-/* primary submit */
+/* ---- glass optics for solid (accent) buttons ----
+   Layered on TOP of the existing fill, so the button colour never changes.
+   Three cues make a surface read as glass: a hard specular band near the top,
+   a bright rim where light wraps the edge, and a soft inner shadow underneath
+   that implies thickness. All static gradients — no blur, no repaint. */
+.btn-gloss {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    /* crisp highlight hugging the top edge */
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.22) 16%,
+      rgba(255, 255, 255, 0.04) 34%,
+      transparent 52%
+    ),
+    /* diagonal wipe across the face */
+      linear-gradient(
+        118deg,
+        rgba(255, 255, 255, 0.26) 0%,
+        transparent 38%,
+        transparent 72%,
+        rgba(255, 255, 255, 0.12) 100%
+      ),
+    /* light gathering along the bottom edge */
+      linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0%, transparent 22%);
+  box-shadow: inset 0 1.2px 0.5px rgba(255, 255, 255, 0.85),
+    inset 0 -6px 12px -8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+/* primary submit — same accent fill, with the gloss stacked ON TOP of it as
+   extra background layers. Done this way rather than with a pseudo-element so
+   it can never paint over the button's own label. */
 .gs-submit {
-  background: linear-gradient(
-    180deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 72%, #2f1fb8)
-  );
-  box-shadow: 0 12px 34px -14px color-mix(in srgb, var(--accent) 70%, transparent);
+  position: relative;
+  background-image: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.62) 0%,
+      rgba(255, 255, 255, 0.22) 16%,
+      rgba(255, 255, 255, 0.04) 34%,
+      transparent 52%
+    ),
+    linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.26) 0%,
+      transparent 38%,
+      transparent 72%,
+      rgba(255, 255, 255, 0.12) 100%
+    ),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0%, transparent 22%),
+    /* the original accent fill, unchanged, underneath */
+      linear-gradient(
+        180deg,
+        var(--accent),
+        color-mix(in srgb, var(--accent) 72%, #2f1fb8)
+      );
+  /* bright rim + inner shading = the thickness that makes it read as glass */
+  box-shadow: 0 12px 34px -14px color-mix(in srgb, var(--accent) 70%, transparent),
+    inset 0 1.2px 0.5px rgba(255, 255, 255, 0.85),
+    inset 0 -6px 12px -8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
   transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 220ms ease, filter 220ms ease;
 }
@@ -795,11 +867,12 @@ html.lenis body {
     transparent 100%
   );
 
-  /* Colour-match the plate to the page. Source plate is rgb(255,253,254) and
-     the light page is rgb(233,231,239): 233/254 ≈ 0.92. This value is tied to
-     --page-1 — if the page tone changes, this must change with it, which is
-     exactly why the border reappeared when the page was darkened. */
-  filter: brightness(0.92);
+  /* Colour-match the plate to the page. The ratio is DERIVED at runtime from
+     the real --page-1 value (see useMascotMatch) instead of being hard-coded,
+     because a fixed number silently broke — and the plate reappeared as a
+     visible rectangle — every time the page tone was adjusted. The fallback
+     covers the first paint before the hook runs. */
+  filter: brightness(var(--mascot-b, 0.92));
 }
 /* DARK MODE — a documented limitation, not an oversight.
    The source's plate and the mascot's body are the SAME pixel value
@@ -895,6 +968,25 @@ html.lenis body {
   .scroll-top {
     width: 50px;
     height: 50px;
+  }
+}
+/* PHONES ONLY — desktop sizing above is untouched.
+   It floats over content by nature, so on a narrow screen it has to read
+   clearly as a separate control: smaller, tucked further into the corner, and
+   opaque enough that text never shows through it. */
+@media (max-width: 639px) {
+  .scroll-top {
+    width: 40px;
+    height: 40px;
+    right: max(12px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+    background-color: var(--glass-solid);
+    box-shadow: 0 8px 22px -8px rgba(20, 20, 40, 0.4),
+      0 0 0 1px var(--hairline);
+  }
+  .scroll-top--in-modal {
+    right: 10px;
+    bottom: 10px;
   }
 }
 

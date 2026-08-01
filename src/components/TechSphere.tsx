@@ -216,7 +216,7 @@ export default function TechSphere() {
   }, []);
 
   return (
-    <section id="stack" className="px-4 pt-24 sm:pt-32">
+    <section id="stack" className="px-4 pt-14 sm:pt-20">
       {/* Copy on the left, sphere on the right. Stacks to copy-then-sphere on
           phones, where both are scaled down to sit inside one screen. */}
       <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:gap-6">

@@ -24,10 +24,10 @@
           var root = document.documentElement;
           if (t === "dark") root.classList.add("dark");
           root.style.colorScheme = t;
-          root.style.background = t === "dark" ? "#16161f" : "#E9E7EF";
+          root.style.background = t === "dark" ? "#16161f" : "#E3E1EA";
           var m = document.createElement("meta");
           m.name = "theme-color";
-          m.content = t === "dark" ? "#16161f" : "#E9E7EF";
+          m.content = t === "dark" ? "#16161f" : "#E3E1EA";
           document.head.appendChild(m);
         } catch (e) {}
       })();

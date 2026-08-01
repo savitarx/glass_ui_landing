@@ -30,7 +30,7 @@ const TIMELINE = [
 
 export default function About() {
   return (
-    <section id="about" className="px-4 pt-24 sm:pt-32">
+    <section id="about" className="px-4 pt-14 sm:pt-20">
       <GlassCard className="mx-auto max-w-6xl px-6 py-12 sm:px-12 sm:py-16">
         <SectionHeading
           eyebrow="About Us"

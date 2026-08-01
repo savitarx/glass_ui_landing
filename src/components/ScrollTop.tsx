@@ -44,7 +44,31 @@ export default function ScrollTop({
 
     target.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    return () => target.removeEventListener("scroll", onScroll);
+
+    /* Page-level only: Lenis drives the scroll itself and a native `scroll`
+       event does NOT reliably reach us while it is active (measured: 0 events
+       fired for a 1200px programmatic scroll), so the button would never
+       appear. Subscribe to Lenis's own event as well. It is created by a
+       parent effect, which runs AFTER this child effect, so if it isn't there
+       yet we retry once. */
+    type Lenis = { on: (e: string, f: () => void) => void; off: (e: string, f: () => void) => void };
+    let lenis: Lenis | null = null;
+    let retry = 0;
+    const attachLenis = () => {
+      if (el) return true; // container-scoped instances don't use Lenis
+      const l = (window as unknown as { __lenis?: Lenis }).__lenis;
+      if (!l?.on) return false;
+      l.on("scroll", onScroll);
+      lenis = l;
+      return true;
+    };
+    if (!attachLenis()) retry = window.setTimeout(attachLenis, 400);
+
+    return () => {
+      target.removeEventListener("scroll", onScroll);
+      if (retry) window.clearTimeout(retry);
+      lenis?.off("scroll", onScroll);
+    };
   }, [scroller, threshold]);
 
   const toTop = () => {
@@ -60,8 +84,8 @@ export default function ScrollTop({
       __lenisWake?: () => void;
     };
     if (w.__lenis) {
+      w.__lenisWake?.(); // wake before starting, so no first frame is dropped
       w.__lenis.scrollTo(0);
-      w.__lenisWake?.();
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
