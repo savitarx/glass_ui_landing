@@ -28,7 +28,7 @@ export default function Footer() {
               </span>
             </div>
             <p className="mt-4 max-w-xs text-[0.92rem] leading-relaxed text-soft">
-              A design-led engineering studio crafting calm, premium digital
+              A design-led engineering studio crafting premium digital
               experiences.
             </p>
             <div className="mt-5 flex gap-2.5">
@@ -89,7 +89,7 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-[color:var(--hairline)] pt-6 text-[0.85rem] text-dim sm:flex-row">
           <span>© {new Date().getFullYear()} Team Invisos. All rights reserved.</span>
-          <span>Crafted with love and care</span>
+          <span>Crafted with care</span>
         </div>
       </GlassCard>
     </footer>

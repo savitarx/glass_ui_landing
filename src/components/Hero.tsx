@@ -84,7 +84,7 @@ export default function Hero() {
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1], delay: 0.14 }}
               className="mt-5 max-w-md text-[0.95rem] leading-relaxed text-soft sm:mt-6 sm:text-[1.05rem]"
             >
-              Team Invisos is a design-led engineering studio crafting calm,
+              Team Invisos is a design-led engineering studio crafting
               elegant products with obsessive attention to detail — from first
               pixel to production.
             </motion.p>

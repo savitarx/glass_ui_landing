@@ -8,37 +8,37 @@ const REVIEWS = [
   {
     quote:
       "Team Invisos delivered the most refined product experience we've ever shipped. Every detail felt intentional.",
-    name: "Marina Vale",
-    role: "CPO, Aurora",
+    name: "Vishal Manikanthan",
+    role: "Business",
     initials: "MV",
   },
   {
     quote:
       "Calm, precise, and remarkably fast. They think like designers and build like world-class engineers.",
-    name: "Kai Nakamura",
-    role: "Founder, Cove",
-    initials: "KN",
+    name: "Akshaya Shanmugam",
+    role: "Freelancer,Marketing",
+    initials: "AS",
   },
   {
     quote:
-      "The polish is Apple-tier. Our users constantly tell us the app simply feels better than anything else.",
-    name: "Selene Ortiz",
-    role: "Design Lead, Lumen",
-    initials: "SO",
+      "Our users constantly tell us the app simply feels better than anything else.",
+    name: "Satheeshkumar GJ",
+    role: "Freelancer",
+    initials: "GJ",
   },
   {
     quote:
       "A partner, not a vendor. They cared about our outcomes as if the product were their own.",
-    name: "Dominic Reeve",
-    role: "VP Product, Northwind",
-    initials: "DR",
+    name: "Vikraman Sermakani",
+    role: "Private Business",
+    initials: "VK",
   },
   {
     quote:
       "Impeccable craft and communication. The result belongs in a design award showcase.",
-    name: "Aria Fenn",
-    role: "CEO, Studio Muse",
-    initials: "AF",
+    name: "Sudharsan",
+    role: "Hotel Lotus,Manager",
+    initials: "SD",
   },
 ];
 

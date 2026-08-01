@@ -15,7 +15,7 @@ const FAQ = [
   },
   {
     q: "How long does a typical engagement last?",
-    a: "Most projects run between six and sixteen weeks. We scope carefully up front so timelines stay calm and predictable.",
+    a: "Most projects run between three weeks and sixteen weeks. We scope carefully up front so timelines stay calm and predictable.",
   },
   {
     q: "Do you work with existing design or code?",
@@ -23,7 +23,7 @@ const FAQ = [
   },
   {
     q: "What does working together look like?",
-    a: "A small senior team, weekly check-ins, and a shared workspace. You'll always know exactly where things stand.",
+    a: "A small professional team, weekly check-ins, and a shared workspace. You'll always know exactly where things stand.",
   },
 ];
 

@@ -22,10 +22,10 @@ const PILLARS = [
 ];
 
 const TIMELINE = [
-  { year: "2016", text: "Team Invisos founded as a two-person design studio." },
-  { year: "2019", text: "Grew into a full design-and-engineering practice." },
-  { year: "2022", text: "Shipped our 100th product across fintech, health & commerce." },
-  { year: "2025", text: "Recognised for craft with international design honours." },
+  { year: "2024", text: "Team Invisos founded as a website design studio." },
+  { year: "2024", text: "Grew into a full design-and-engineering practice." },
+  { year: "2025", text: "Shipped our 25th product across fintech, health & commerce." },
+  { year: "2026", text: "Recognised for craft with quality design honours" },
 ];
 
 export default function About() {
