@@ -674,7 +674,9 @@ export default function GetStarted() {
                   className="font-medium underline decoration-1 underline-offset-2"
                   style={{ color: "var(--link)" }}
                 >
-                  thavashankarj@gmail.com
+                  {/* was hardcoded to an old address — now driven by the single
+                      RECIPIENT constant so it can never drift again */}
+                  {RECIPIENT}
                 </a>
               </div>
             </GlassCard>

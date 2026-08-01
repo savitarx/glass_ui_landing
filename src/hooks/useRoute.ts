@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Minimal hash router — no dependency, and it works on any static host without
@@ -93,6 +93,8 @@ export function navigate(path: string) {
 
 export function useRoute(): string {
   const [route, setRoute] = useState(read);
+  /** skip the scroll pass on first mount — nothing has navigated yet */
+  const first = useRef(true);
 
   useEffect(() => {
     const onChange = () => {
@@ -101,11 +103,27 @@ export function useRoute(): string {
       if (activeRoute === "/" && next !== "/") homeScroll = currentScroll();
       activeRoute = next;
       setRoute(next);
-      scrollForRoute(next);
+      // NOTE: the scroll is applied in the layout effect below, not here.
     };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
+
+  /* Scroll AFTER the new route is in the DOM but BEFORE the browser paints.
+     This used to run inside the hashchange handler, which fires before React
+     re-renders — so it scrolled to the saved offset (e.g. 4200px) while the
+     short standalone page was still mounted. The viewport ended up past the end
+     of that page's content, showing nothing but the fixed lavender/violet
+     background field: the purple flash seen when returning home.
+     useLayoutEffect runs after the commit and before paint, so that
+     intermediate state can never be shown. */
+  useLayoutEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    scrollForRoute(route);
+  }, [route]);
 
   return route;
 }

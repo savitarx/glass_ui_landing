@@ -8,14 +8,15 @@
  * The API key lives ONLY here, server-side. It is never shipped to the browser.
  *
  * ── Setup ────────────────────────────────────────────────────────────────────
- * 1. Create a free account at resend.com — sign up with thavashankarj@gmail.com.
+ * 1. Create a free account at resend.com — sign up with invisos99@gmail.com
+ *    (it must be THIS address; see the note in step 3).
  * 2. Copy the API key and set it as an environment variable on your host:
  *        RESEND_API_KEY = re_xxxxxxxxxxxx
  * 3. Optional, once you own a domain: verify it in Resend and set
  *        MAIL_FROM = "Invisos <hello@yourdomain.com>"
- *    Until then the default sender below (Resend's shared onboarding address)
- *    works, but it can only deliver to the address that owns the Resend
- *    account — which is exactly the recipient we want, so it is fine.
+ *    Until then the default sender below is Resend's shared onboarding address,
+ *    which can ONLY deliver to the address that owns the Resend account. That
+ *    is why step 1 must use invisos99@gmail.com — it is the TO below.
  * 4. Deploy. The form posts here automatically; no front-end change needed.
  *
  * If this endpoint is missing or errors, the client falls back to opening the
