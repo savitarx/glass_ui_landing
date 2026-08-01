@@ -10,7 +10,7 @@
  * mail client with everything pre-filled. The form is never a dead end.
  */
 
-export const RECIPIENT = "thavashankarj@gmail.com";
+export const RECIPIENT = "invisos99@gmai.com";
 
 const ENDPOINT = "/api/inquiry";
 

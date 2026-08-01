@@ -24,7 +24,7 @@
 
 export const config = { runtime: "edge" };
 
-const TO = "thavashankarj@gmail.com";
+const TO = "invisos99@gmail.com";
 const FROM = "Invisos <onboarding@resend.dev>";
 const MAX = 8000; // hard cap on any single field, cheap abuse guard
 
