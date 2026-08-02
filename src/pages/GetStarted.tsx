@@ -15,6 +15,7 @@ import Reveal from "../components/Reveal";
 import ScrollTop from "../components/ScrollTop";
 import { navigate } from "../hooks/useRoute";
 import { useTheme } from "../hooks/useTheme";
+import { useAuth } from "../hooks/useAuth";
 import { RECIPIENT, buildInquiryMail, sendInquiry } from "../lib/sendInquiry";
 
 /* ------------------------------------------------------------------ data */
@@ -171,6 +172,7 @@ function Choice({
 
 export default function GetStarted() {
   const { theme } = useTheme();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -212,6 +214,15 @@ export default function GetStarted() {
     };
   }, []);
 
+  /* Prefill identity from the signed-in Google account. The email is the
+     verified one from the provider — it is what the server trusts, so it is
+     shown read-only rather than left editable. */
+  useEffect(() => {
+    if (!user) return;
+    setName((n) => n || user.displayName || "");
+    setEmail(user.email || "");
+  }, [user]);
+
   // auto-resize the textarea to its content
   useEffect(() => {
     const el = ta.current;
@@ -243,17 +254,27 @@ export default function GetStarted() {
     if (!canSubmit || sending) return;
     setSendError("");
     setSending(true);
-    const result = await sendInquiry({
-      name,
-      email,
-      company,
-      build,
-      description,
-      budget,
-      timeline,
-      assets,
-      reference,
-    });
+    // fresh ID token for this request; the server verifies it before sending
+    let idToken: string | undefined;
+    try {
+      idToken = await user?.getIdToken();
+    } catch {
+      idToken = undefined;
+    }
+    const result = await sendInquiry(
+      {
+        name,
+        email,
+        company,
+        build,
+        description,
+        budget,
+        timeline,
+        assets,
+        reference,
+      },
+      idToken
+    );
     setSending(false);
     if (!result.ok) {
       // stay on the form with everything the visitor typed still in place

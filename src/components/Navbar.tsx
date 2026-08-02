@@ -4,6 +4,8 @@ import { Moon, Sun, Menu, X, Sparkles } from "lucide-react";
 import { useTheme } from "../hooks/useTheme";
 import { scrollToId } from "../hooks/useLenis";
 import { navigate } from "../hooks/useRoute";
+import { useAuth } from "../hooks/useAuth";
+import ProfileButton from "./ProfileButton";
 import Button from "./Button";
 
 /* Contact is no longer a nav item — the Get Started button is the single,
@@ -26,6 +28,7 @@ const LINKS: { label: string; id: string; route?: string }[] = [
  */
 export default function SiteNav({ floating = true }: { floating?: boolean }) {
   const { theme, toggle } = useTheme();
+  const { user } = useAuth();
   const [active, setActive] = useState("home");
   const [open, setOpen] = useState(false);
   const [shown, setShown] = useState(!floating);
@@ -150,11 +153,18 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
           </motion.span>
         </AnimatePresence>
       </button>
-      <div className="hidden sm:block">
-        <Button onClick={goStarted} className="!px-5 !py-2.5">
-          Get Started
-        </Button>
-      </div>
+      {/* Signed in → compact profile pill instead of the Get Started CTA.
+          The pill shows at every width (it collapses to just the avatar on
+          narrow screens); the CTA stays hidden on phones as before. */}
+      {user ? (
+        <ProfileButton />
+      ) : (
+        <div className="hidden sm:block">
+          <Button onClick={goStarted} className="!px-5 !py-2.5">
+            Get Started
+          </Button>
+        </div>
+      )}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Menu"
@@ -193,9 +203,15 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
             </button>
           ))}
           <div className="p-2">
-            <Button onClick={goStarted} className="w-full">
-              Get Started
-            </Button>
+            {user ? (
+              <Button onClick={goStarted} className="w-full">
+                Start a project
+              </Button>
+            ) : (
+              <Button onClick={goStarted} className="w-full">
+                Get Started
+              </Button>
+            )}
           </div>
         </motion.div>
       )}

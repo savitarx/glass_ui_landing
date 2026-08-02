@@ -22,7 +22,9 @@ import Help from "./components/Help";
 import Footer from "./components/Footer";
 import GetStarted from "./pages/GetStarted";
 import Legal from "./pages/Legal";
+import Login from "./pages/Login";
 import { useRoute } from "./hooks/useRoute";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 
 function Shell() {
   const { loading, switching, theme } = useTheme();
@@ -33,6 +35,7 @@ function Shell() {
   // keeps the light-mode mascot plate matched to the page tone
   useMascotMatch();
   const route = useRoute();
+  const { user, loading: authLoading } = useAuth();
 
   // Track connectivity — while offline, the loader stays up (slow ticks + msg).
   const [online, setOnline] = useState(
@@ -91,11 +94,21 @@ function Shell() {
 
   // The Get Started page is its own view — same background, orb and theme, but
   // no one-page nav or marketing sections around it.
-  const isGetStarted = route === "/get-started";
+  const wantsGetStarted = route === "/get-started";
   const isPrivacy = route === "/privacy";
   const isTerms = route === "/terms";
+  const isLogin = route === "/login";
+
+  /* GUARD: the enquiry form is only reachable once signed in. While the first
+     auth check is still resolving we render neither, to avoid flashing the
+     login screen at someone who already has a valid session. */
+  const isGetStarted = wantsGetStarted && !!user;
+  const showLogin = isLogin || (wantsGetStarted && !authLoading && !user);
+  const authPending = wantsGetStarted && authLoading;
+
   // any standalone page: rendered without the one-page nav or marketing sections
-  const isStandalone = isGetStarted || isPrivacy || isTerms;
+  const isStandalone =
+    wantsGetStarted || isPrivacy || isTerms || isLogin;
 
   return (
     <>
@@ -119,6 +132,8 @@ function Shell() {
           mounted means the reveal plays once, on first load, and never again. */}
       <div className={`stage${showing ? "" : " stage--in"}`}>
         {isGetStarted && <GetStarted />}
+        {showLogin && <Login />}
+        {authPending && <div className="min-h-[60vh]" aria-hidden />}
         {isPrivacy && <Legal kind="privacy" />}
         {isTerms && <Legal kind="terms" />}
 
@@ -155,7 +170,9 @@ function Shell() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Shell />
+      <AuthProvider>
+        <Shell />
+      </AuthProvider>
     </ThemeProvider>
   );
 }

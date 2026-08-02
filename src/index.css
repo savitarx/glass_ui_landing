@@ -940,6 +940,100 @@ html.lenis body {
   );
 }
 
+/* ---- signed-in profile pill + menu ---- */
+.profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px 5px 5px;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease;
+}
+.profile-pill:hover {
+  transform: translateY(-1px);
+}
+.profile-pill__img,
+.profile-pill__initial {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.profile-pill__initial {
+  color: #fff;
+  font-size: 0.8rem;
+  background: linear-gradient(150deg, var(--accent), var(--accent-2));
+}
+.profile-pill__name {
+  max-width: 8ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* phones: avatar only — the nav row has no width to spare */
+@media (max-width: 400px) {
+  .profile-pill__name {
+    display: none;
+  }
+  .profile-pill {
+    padding: 5px;
+  }
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 60;
+  width: 232px;
+  padding: 8px;
+  border-radius: 18px;
+  text-align: left;
+}
+.profile-menu__id {
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 6px;
+}
+.profile-menu__name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.profile-menu__mail {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.profile-menu__item:hover {
+  background: var(--glass-inner);
+  color: var(--text);
+}
+
 /* ---- back-to-top pill (pages + project modal) ---- */
 .scroll-top {
   position: fixed;

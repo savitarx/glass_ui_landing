@@ -19,9 +19,15 @@
  *    is why step 1 must use invisos99@gmail.com — it is the TO below.
  * 4. Deploy. The form posts here automatically; no front-end change needed.
  *
- * If this endpoint is missing or errors, the client falls back to opening the
- * visitor's mail client, so the form is never a dead end.
+ * 5. Set FIREBASE_PROJECT_ID to your Firebase project id — the ID token sent by
+ *    the browser is verified against it here (see verifyToken.ts). Without it
+ *    every request is rejected with 401, by design.
+ *
+ * Requests must carry `Authorization: Bearer <firebase id token>`. The sender
+ * identity is read from that token, never from the request body.
  */
+
+import { verifyIdToken } from "./verifyToken";
 
 export const config = { runtime: "edge" };
 
@@ -74,11 +80,30 @@ export default async function handler(request: Request): Promise<Response> {
   // silently accept-and-drop obvious bots so they don't retry
   if (clean(body._trap)) return json({ ok: true });
 
-  const name = clean(body.name);
-  const email = clean(body.email);
-  if (!name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return json({ error: "A name and a valid email are required." }, 422);
+  /* AUTH GATE — the real one.
+     Gating the form behind a login screen only hides the UI; anyone can POST
+     here directly. So the Firebase ID token is verified server-side and the
+     sender identity is taken FROM THE TOKEN, not from the request body: a
+     caller cannot claim to be someone else. */
+  const env = (globalThis as { process?: { env?: Record<string, string> } })
+    .process?.env;
+  const projectId = env?.FIREBASE_PROJECT_ID ?? "";
+  const authHeader = request.headers.get("authorization") ?? "";
+  const bearer = authHeader.toLowerCase().startsWith("bearer ")
+    ? authHeader.slice(7).trim()
+    : null;
+
+  const verified = await verifyIdToken(bearer, projectId);
+  if (!verified) {
+    return json({ error: "Please sign in to send an enquiry." }, 401);
   }
+  if (!verified.email) {
+    return json({ error: "Your account has no email address." }, 403);
+  }
+
+  // identity comes from the verified token; the body only supplies the brief
+  const name = clean(body.name) || verified.name || verified.email;
+  const email = verified.email;
 
   const fields: [string, string][] = [
     ["Name", name],
@@ -131,7 +156,6 @@ export default async function handler(request: Request): Promise<Response> {
   const key = (globalThis as { process?: { env?: Record<string, string> } })
     .process?.env?.RESEND_API_KEY;
   if (!key) {
-    // Not configured yet — tell the client so it can fall back to mailto.
     return json({ error: "Mail transport not configured", fallback: true }, 503);
   }
   const from =

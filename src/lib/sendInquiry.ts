@@ -5,13 +5,13 @@
  * server-side (see api/inquiry.ts). The mail credentials live only on the
  * server — nothing secret is shipped to the browser.
  *
- * Fallback: if that endpoint is missing (e.g. running `vite dev` locally, or
- * deployed before RESEND_API_KEY was set) or it errors, we open the visitor's
- * mail client with everything pre-filled. The form is never a dead end.
+ * There is no mail-client fallback: handing the visitor off to their mail app
+ * mid-flow was the thing we were asked to remove. If delivery fails the form
+ * stays put, keeps everything typed, and reports why.
+ *
+ * The request carries the signed-in user's Firebase ID token; api/inquiry.ts
+ * refuses anything it can't verify.
  */
-
-/* typo fix: was "invisos99@gmai.com" — missing the "l", so every fallback
-   mail and every displayed address pointed at a non-existent domain. */
 export const RECIPIENT = "invisos99@gmail.com";
 
 const ENDPOINT = "/api/inquiry";
@@ -82,13 +82,33 @@ export function buildInquiryMail(i?: Partial<Inquiry>): string {
  * the site mid-flow. If delivery fails we stay put and report it, so the person
  * can retry or copy the address, and nothing they typed is lost.
  */
-export async function sendInquiry(i: Inquiry): Promise<SendResult> {
+export async function sendInquiry(
+  i: Inquiry,
+  /** Firebase ID token — the server verifies it before sending anything. */
+  idToken?: string
+): Promise<SendResult> {
+  if (!idToken) {
+    return {
+      ok: false,
+      message: "Your session expired. Please sign in again to send this.",
+    };
+  }
   try {
     const res = await fetch(ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
       body: JSON.stringify({ ...i, _trap: "" }),
     });
+
+    if (res.status === 401) {
+      return {
+        ok: false,
+        message: "Your session expired. Please sign in again to send this.",
+      };
+    }
 
     if (res.ok) return { ok: true };
 
