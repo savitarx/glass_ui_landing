@@ -58,6 +58,60 @@ function transport(): Transporter | null {
   return cached;
 }
 
+/**
+ * Live connection test: TCP + TLS + AUTH, without sending anything.
+ *
+ * "Credentials are present" and "we can actually reach the mail server" are
+ * different questions, and only the second one explains a 502. Returns a coarse
+ * category — never the error text, which can contain the account and host.
+ */
+export async function verifySmtp(): Promise<{
+  status: string;
+  hint: string;
+  host: string;
+  port: number;
+}> {
+  const host = env("SMTP_HOST") || "smtp.gmail.com";
+  const port = Number(env("SMTP_PORT") || 465);
+  const tx = transport();
+  if (!tx) {
+    return { status: "not-configured", hint: "SMTP_USER / SMTP_PASS are unset.", host, port };
+  }
+  try {
+    await tx.verify();
+    return { status: "ok", hint: "Connected and authenticated.", host, port };
+  } catch (e) {
+    const err = e as { code?: string; responseCode?: number; message?: string };
+    const code = String(err?.code ?? "");
+    const msg = String(err?.message ?? "");
+
+    if (code === "ETIMEDOUT" || code === "ESOCKET" || code === "ECONNREFUSED") {
+      return {
+        status: "unreachable",
+        hint:
+          `Could not open a connection to ${host}:${port}. Hosts commonly block ` +
+          `outbound SMTP; try SMTP_PORT=587, or a provider that offers port 2525.`,
+        host,
+        port,
+      };
+    }
+    if (err?.responseCode === 535 || /invalid login|username and password/i.test(msg)) {
+      return {
+        status: "auth-failed",
+        hint:
+          "The server was reached but rejected the credentials. For Gmail this " +
+          "must be an App Password, not the account password.",
+        host,
+        port,
+      };
+    }
+    if (code === "EDNS" || /getaddrinfo/i.test(msg)) {
+      return { status: "dns-failed", hint: `Could not resolve ${host}.`, host, port };
+    }
+    return { status: "failed", hint: "Connection failed for an unrecognised reason.", host, port };
+  }
+}
+
 export type MailResult =
   | { ok: true }
   | { ok: false; status: number; error: string; detail?: string };

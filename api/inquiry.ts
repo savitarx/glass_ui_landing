@@ -29,6 +29,8 @@
 
 import { verifyIdToken } from "./verifyToken";
 import { sendMail } from "./sendMail";
+// re-exported so the server can expose a connection probe on /healthz
+export { verifySmtp } from "./sendMail";
 
 const TO = "invisos99@gmail.com";
 const MAX = 8000; // hard cap on any single field, cheap abuse guard

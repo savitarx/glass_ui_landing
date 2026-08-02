@@ -31,9 +31,10 @@ const STARTED_AT = new Date().toISOString();
    identical to "not deployed" — the exact ambiguity that makes this hard to
    diagnose. Instead we boot, serve the site, and report the fault. */
 let inquiry = null;
+let verifySmtp = null;
 let apiLoadError = null;
 try {
-  ({ default: inquiry } = await import("./dist-server/inquiry.mjs"));
+  ({ default: inquiry, verifySmtp } = await import("./dist-server/inquiry.mjs"));
 } catch (err) {
   apiLoadError = String(err?.message ?? err);
   console.error(
@@ -138,6 +139,19 @@ const server = createServer(async (req, res) => {
        Open this in a browser to answer, in one shot, whether THIS server is
        the thing answering your domain and whether it has what it needs. */
     if (url.pathname === "/healthz") {
+      /* ?smtp=1 additionally opens a real connection (TCP + TLS + AUTH, no
+         message sent). "Credentials are set" and "the mail server is actually
+         reachable from this host" are different questions, and only the second
+         explains a 502. The result is a coarse category — never the raw error,
+         which can carry the account and host. */
+      let smtp;
+      if (url.searchParams.get("smtp") && verifySmtp) {
+        try {
+          smtp = await verifySmtp();
+        } catch (e) {
+          smtp = { status: "probe-threw", hint: String(e?.message ?? e) };
+        }
+      }
       res.writeHead(200, { "content-type": "application/json" });
       res.end(
         JSON.stringify(
@@ -150,6 +164,7 @@ const server = createServer(async (req, res) => {
             firebaseProjectIdSet: !!process.env.FIREBASE_PROJECT_ID,
             node: process.version,
             startedAt: STARTED_AT,
+            ...(smtp ? { smtp } : {}),
           },
           null,
           1
