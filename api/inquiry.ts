@@ -1,38 +1,36 @@
 /**
  * POST /api/inquiry — delivers a Get Started submission to the studio inbox.
  *
- * Written against the Web Fetch API (Request → Response), so the same file runs
- * unchanged on Vercel Edge Functions, Netlify Edge Functions and Cloudflare
- * Workers. No npm dependency: mail goes out over Resend's HTTP API.
- *
- * The API key lives ONLY here, server-side. It is never shipped to the browser.
+ * Mail goes out over plain SMTP from the studio's own mailbox (see sendMail.ts).
+ * There is no third-party mail service, no API key to expire, and no shared
+ * sender address with hidden delivery restrictions.
  *
  * ── Setup ────────────────────────────────────────────────────────────────────
- * 1. Create a free account at resend.com — sign up with invisos99@gmail.com
- *    (it must be THIS address; see the note in step 3).
- * 2. Copy the API key and set it as an environment variable on your host:
- *        RESEND_API_KEY = re_xxxxxxxxxxxx
- * 3. Optional, once you own a domain: verify it in Resend and set
- *        MAIL_FROM = "Invisos <hello@yourdomain.com>"
- *    Until then the default sender below is Resend's shared onboarding address,
- *    which can ONLY deliver to the address that owns the Resend account. That
- *    is why step 1 must use invisos99@gmail.com — it is the TO below.
- * 4. Deploy. The form posts here automatically; no front-end change needed.
+ * 1. On the Google account for invisos99@gmail.com, turn on 2-Step Verification,
+ *    then create an App Password (Security -> App passwords). A normal account
+ *    password will not authenticate against SMTP.
+ * 2. Set these on the host (Render -> Environment). They are read at runtime and
+ *    never reach the browser:
+ *        SMTP_USER = invisos99@gmail.com
+ *        SMTP_PASS = <16-character app password>
+ * 3. Set FIREBASE_PROJECT_ID to your Firebase project id — the ID token sent by
+ *    the browser is verified against it (see verifyToken.ts). Without it every
+ *    request is rejected with 401, by design.
  *
- * 5. Set FIREBASE_PROJECT_ID to your Firebase project id — the ID token sent by
- *    the browser is verified against it here (see verifyToken.ts). Without it
- *    every request is rejected with 401, by design.
+ * Optional overrides: SMTP_HOST / SMTP_PORT for a non-Gmail provider, MAIL_FROM
+ * for a custom display sender.
  *
  * Requests must carry `Authorization: Bearer <firebase id token>`. The sender
  * identity is read from that token, never from the request body.
+ *
+ * NOTE: this is no longer an edge function. SMTP needs raw TCP sockets, so it
+ * runs on Node (see server.mjs), which is what Render executes anyway.
  */
 
 import { verifyIdToken } from "./verifyToken";
-
-export const config = { runtime: "edge" };
+import { sendMail } from "./sendMail";
 
 const TO = "invisos99@gmail.com";
-const FROM = "Invisos <onboarding@resend.dev>";
 const MAX = 8000; // hard cap on any single field, cheap abuse guard
 
 type Payload = {
@@ -153,35 +151,19 @@ export default async function handler(request: Request): Promise<Response> {
       }</p>
     </div>`;
 
-  const key = (globalThis as { process?: { env?: Record<string, string> } })
-    .process?.env?.RESEND_API_KEY;
-  if (!key) {
-    return json({ error: "Mail transport not configured", fallback: true }, 503);
-  }
-  const from =
-    (globalThis as { process?: { env?: Record<string, string> } }).process?.env
-      ?.MAIL_FROM || FROM;
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [TO],
-      // so hitting Reply in the inbox goes straight back to the client
-      reply_to: email,
-      subject: `Project inquiry — ${name}${body.build ? ` · ${clean(body.build)}` : ""}`,
-      text,
-      html,
-    }),
+  const sent = await sendMail({
+    to: TO,
+    replyTo: email,
+    subject: `Project inquiry — ${name}${body.build ? ` · ${clean(body.build)}` : ""}`,
+    text,
+    html,
   });
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    return json({ error: "Upstream mail error", detail, fallback: true }, 502);
+  if (!sent.ok) {
+    // The reason is logged for the operator but never returned to the browser —
+    // an SMTP error string can leak the account and the host.
+    console.error("[inquiry] mail failed:", sent.detail ?? sent.error);
+    return json({ error: sent.error }, sent.status);
   }
   return json({ ok: true });
 }

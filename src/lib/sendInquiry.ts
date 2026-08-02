@@ -118,16 +118,31 @@ export async function sendInquiry(
       const data = (await res.json()) as { error?: string };
       message = data?.error ?? "";
     } catch {
-      /* non-JSON response */
+      /* non-JSON response — see the 404 note below */
     }
     if (res.status === 422) {
       return { ok: false, message: message || "Please check your name and email." };
     }
-    return {
-      ok: false,
-      message:
-        "We couldn't send that just now. Please try again, or email us directly.",
-    };
+
+    /* A 404 (or an HTML body) means the endpoint itself is missing — the app is
+       being served without its server, so no amount of retrying will help. That
+       is a deployment fault, and saying "try again" sends people in circles. */
+    if (res.status === 404 || !message) {
+      return {
+        ok: false,
+        message:
+          res.status === 404
+            ? `The contact service isn't reachable right now. Please email us directly at ${RECIPIENT}.`
+            : "We couldn't send that just now. Please try again, or email us directly.",
+      };
+    }
+
+    /* Otherwise pass the server's own wording through. These strings are
+       written to be shown ("Mail is not configured on the server.") and are
+       deliberately free of SMTP detail, which stays in the server log. Hiding
+       them behind one generic sentence made every distinct failure look the
+       same and impossible to diagnose. */
+    return { ok: false, message };
   } catch {
     return {
       ok: false,

@@ -1,5 +1,6 @@
 node_modules
 dist
+dist-server
 
 # Secrets — .env.example is the only env file that may be committed.
 .env

@@ -1,0 +1,46 @@
+# Render Blueprint.
+#
+# IMPORTANT: this must be a WEB SERVICE, not a Static Site. A Static Site only
+# serves dist/, so POST /api/inquiry has nothing behind it and every submission
+# fails with "we couldn't send that just now". server.mjs serves the same built
+# files AND runs the mail handler.
+services:
+  - type: web
+    name: invisos
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      # Server-side secrets — set these in the Render dashboard, NOT here.
+      # sync:false means "prompt me, never store the value in git".
+      # Gmail App Password (Google Account -> Security -> App passwords).
+      # A normal account password will NOT authenticate against SMTP.
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      # Optional overrides for a non-Gmail provider / custom display sender:
+      # - key: SMTP_HOST
+      # - key: SMTP_PORT
+      # - key: MAIL_FROM
+
+      # Firebase web config. Not secret (it ships in the client bundle by
+      # design) but it must be present AT BUILD TIME — Vite inlines VITE_*
+      # during `npm run build`, so if these are missing the deployed site has
+      # no auth and the login page shows "not configured".
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: VITE_FIREBASE_PROJECT_ID
+        sync: false
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: VITE_FIREBASE_APP_ID
+        sync: false

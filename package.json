@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "tsc -b && vite build && npm run build:api",
+    "preview": "vite preview",
+    "build:api": "esbuild api/inquiry.ts --bundle --platform=node --format=esm --target=node18 --external:nodemailer --outfile=dist-server/inquiry.mjs",
+    "start": "node server.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.3",
@@ -15,15 +17,18 @@
     "framer-motion": "^11.3.24",
     "lenis": "^1.1.9",
     "lucide-react": "^0.427.0",
+    "nodemailer": "^9.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
+    "esbuild": "^0.21.5",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.4",

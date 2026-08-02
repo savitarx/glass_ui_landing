@@ -1063,7 +1063,12 @@ html.lenis body {
 .profile-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 10px);
+  /* Offset is measured from the PILL, but the bar it sits in extends ~11px
+     below the pill (its own py-2 plus the row's alignment). At +10px the menu
+     opened 1px ABOVE the bar's bottom edge, so the two glass rims and their
+     shadows collided — the mild overlap. +22px clears the bar and still leaves
+     a deliberate ~10px gap between the two surfaces. */
+  top: calc(100% + 22px);
   z-index: 60;
   /* never wider than the viewport allows — the pill sits hard against the
      right edge, so a fixed 232px could push off-screen on a 320px device */
@@ -1071,6 +1076,19 @@ html.lenis body {
   padding: 8px;
   border-radius: 18px;
   text-align: left;
+  /* A MENU, not a decorative panel: it opens directly over body copy, so the
+     standard --glass-bg (alpha .16–.20) let that copy read straight through
+     and collide with the labels. --glass-solid keeps the frost and the blur
+     but suppresses what is behind it. */
+  background-color: var(--glass-solid);
+}
+/* The in-hero navbar is a different container: `pb-5` plus a border-b hairline
+   puts its edge 22px under the pill, so the shared offset landed the menu
+   exactly ON that divider. ONLY the offset differs — everything else is shared
+   above. (This block previously swallowed those shared declarations, which
+   left the floating navbar's menu with no width, padding or z-index.) */
+#hero-card .profile-menu {
+  top: calc(100% + 32px);
 }
 .profile-menu__id {
   padding: 10px 12px 12px;
