@@ -62,6 +62,26 @@ const MIME = {
   ".txt": "text/plain; charset=utf-8",
 };
 
+/**
+ * Headers every HTML document needs.
+ *
+ * COOP is the one that matters here. Firebase's signInWithPopup opens a Google
+ * window and then polls `popup.closed` and calls `popup.close()` to know when
+ * sign-in finished. Under `Cross-Origin-Opener-Policy: same-origin` the browser
+ * severs the opener relationship, those two calls are blocked, and the console
+ * fills with "Cross-Origin-Opener-Policy policy would block the window.closed
+ * call" — the popup can complete but the app never learns about it.
+ *
+ * `same-origin-allow-popups` keeps the isolation for ordinary navigations while
+ * still letting a popup this page opened talk back, which is exactly the case
+ * OAuth needs. Set explicitly so it does not depend on a platform default.
+ */
+const HTML_HEADERS = {
+  "cross-origin-opener-policy": "same-origin-allow-popups",
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "strict-origin-when-cross-origin",
+};
+
 async function serveStatic(req, res, urlPath) {
   // normalize + strip leading separators so "../" can never escape dist/
   const rel = normalize(decodeURIComponent(urlPath)).replace(/^([/\\])+/, "");
@@ -82,6 +102,8 @@ async function serveStatic(req, res, urlPath) {
       "content-type": MIME[ext] ?? "application/octet-stream",
       "content-length": info.size,
       "cache-control": cache,
+      // the popup-opener relaxation only belongs on documents, not on assets
+      ...(ext === ".html" ? HTML_HEADERS : {}),
     });
     res.end(await readFile(file));
     return true;
@@ -143,6 +165,7 @@ const server = createServer(async (req, res) => {
       res.writeHead(200, {
         "content-type": "text/html; charset=utf-8",
         "cache-control": "no-cache",
+        ...HTML_HEADERS,
       });
       res.end(html);
       return;

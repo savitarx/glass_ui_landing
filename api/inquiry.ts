@@ -91,6 +91,17 @@ export default async function handler(request: Request): Promise<Response> {
     ? authHeader.slice(7).trim()
     : null;
 
+  /* A missing FIREBASE_PROJECT_ID makes verifyIdToken return null immediately,
+     which is indistinguishable from a bad token — so a server that was simply
+     never configured told every visitor to sign in again, forever. Separate
+     the two: this one is a deployment fault, not the visitor's. */
+  if (!projectId) {
+    return json(
+      { error: "Sign-in verification isn't configured on the server." },
+      503
+    );
+  }
+
   const verified = await verifyIdToken(bearer, projectId);
   if (!verified) {
     return json({ error: "Please sign in to send an enquiry." }, 401);
