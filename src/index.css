@@ -506,9 +506,15 @@ html.lenis body {
        solid frosted surfaces and keeps text contrast high */
     background-color: var(--glass-solid);
   }
-  /* smaller, cheaper ambient lights */
+  /* Weak devices: drop the blur pass on the ambient lights entirely.
+     Each light's own background is already `radial-gradient(circle, colour,
+     transparent 62–66%)` — it fades to fully transparent on its own. The
+     blur only re-smooths a ramp that is already smooth, over a band about 9%
+     of the radius, so removing it is close to invisible while deleting four
+     full-screen filter passes (measured 4.1 MPx across the set on desktop).
+     Desktop keeps its blur — this is scoped to the tier that struggles. */
   [data-perf="low"] .light-drift {
-    filter: blur(38px) !important;
+    filter: none !important;
   }
   /* Each light is a multi-megapixel blurred layer held in GPU memory. Phones
      keep the four that define the palette and drop the rest — the gradient
@@ -520,6 +526,19 @@ html.lenis body {
      parked while off screen, which the .marquee-idle class below handles. */
   .marquee-track.marquee-idle {
     animation-play-state: paused;
+    /* Pausing alone left the track's compositor layer alive — measured at
+       845K px (~3.4 MB) held while off screen. Release it too. */
+    will-change: auto;
+  }
+
+  /* Generic off-screen parking (see useIdleOffscreen). An infinite decoration
+     that nobody can see should cost neither frames nor GPU memory. */
+  .idle-off,
+  .idle-off * {
+    animation-play-state: paused !important;
+  }
+  .idle-off .float-y {
+    will-change: auto;
   }
 
   /* Mobile: lighter frost + shallower shadows → keeps 60fps on phones while
@@ -643,6 +662,26 @@ html.lenis body {
 .gs-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Locked field — the signed-in email. It must still READ as clearly as any
+   other value (same --text colour, no dimming), so "you can't change this" is
+   carried by the tint, the lock glyph and the cursor rather than by fading the
+   text out. A faded value would fail contrast for the one field the visitor
+   most needs to check before sending. */
+.gs-input--locked {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  border-color: color-mix(in srgb, var(--field-border) 70%, transparent);
+  cursor: default;
+}
+.gs-input--locked:hover {
+  border-color: color-mix(in srgb, var(--field-border) 70%, transparent);
+}
+/* Focus is still shown — the field is reachable by keyboard and selectable —
+   but in a neutral tone, since focusing it can't lead to an edit. */
+.gs-input--locked:focus {
+  border-color: color-mix(in srgb, var(--text) 28%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--text) 8%, transparent);
 }
 
 /* selectable card / pill */
@@ -984,7 +1023,15 @@ html.lenis body {
     display: none;
   }
   .profile-pill {
-    padding: 5px;
+    /* 6px + 32px avatar + 6px = 44px, the minimum comfortable tap target.
+       At the previous 5px/28px it was 38px, which is a miss-prone size for
+       the only way to reach Sign out on a phone. */
+    padding: 6px;
+  }
+  .profile-pill__img,
+  .profile-pill__initial {
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -993,7 +1040,9 @@ html.lenis body {
   right: 0;
   top: calc(100% + 10px);
   z-index: 60;
-  width: 232px;
+  /* never wider than the viewport allows — the pill sits hard against the
+     right edge, so a fixed 232px could push off-screen on a 320px device */
+  width: min(232px, calc(100vw - 32px));
   padding: 8px;
   border-radius: 18px;
   text-align: left;
@@ -1033,6 +1082,141 @@ html.lenis body {
   background: var(--glass-inner);
   color: var(--text);
 }
+/* Touch: the menu rows were ~38px. Coarse pointers get the full 44px. */
+@media (pointer: coarse) {
+  .profile-menu__item {
+    padding: 13px 12px;
+  }
+}
+
+/* ---- FAQ accordion --------------------------------------------------------
+   The 0fr → 1fr grid-row trick: the row collapses to nothing and expands to
+   exactly the content height, with the browser interpolating on its own
+   timeline. No JS runs per frame and the content is never measured, which is
+   what made the old height-based version stutter. */
+.faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  /* 240ms, not 380: the expansion is the one part that genuinely costs layout,
+     so it is kept short and decisive. The perceived smoothness comes from the
+     content reveal below, which is compositor-only and therefore free. */
+  transition: grid-template-rows 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-panel--open {
+  grid-template-rows: 1fr;
+}
+.faq-panel__inner {
+  overflow: hidden;
+  /* required — a grid item's default `min-height: auto` refuses to shrink
+     below its content, which would pin the row open at full height */
+  min-height: 0;
+  /* scopes the answer's own layout so it cannot dirty anything outside */
+  contain: layout paint;
+}
+/* The reveal itself rides on opacity + transform ONLY. Those never touch
+   layout, so this half stays perfectly smooth no matter what the row is
+   doing, and it is what the eye actually reads as the animation. */
+.faq-panel__inner > * {
+  opacity: 0;
+  transform: translate3d(0, -6px, 0);
+  transition: opacity 170ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-panel--open .faq-panel__inner > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  /* slight lead-in so the text arrives just after the row starts opening */
+  transition-delay: 60ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-panel,
+  .faq-panel__inner > * {
+    transition: none;
+  }
+}
+
+/* Freeze a glass panel's backdrop while its own height is animating.
+   backdrop-filter re-samples the entire backdrop whenever the element's
+   geometry changes, so a growing card re-blurs every frame. Applied for the
+   length of the transition only (see Help.tsx).
+
+   ONLY the blur is dropped — the fill is left alone. Swapping it to
+   --glass-solid would take the surface from alpha 0.2 to 0.92 and flash
+   visibly on every toggle; removing the blur alone is close to invisible
+   because the only thing behind this card is the soft ambient gradient. */
+.glass.glass-frozen {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---- floating "start a project" button ----------------------------------
+   Shares the bottom-right corner with the back-to-top pill, so it is parked
+   one slot ABOVE it (pill 50px + 12px gap) rather than on top of it. On phones
+   the page-level pill is hidden, so the FAB drops into the corner itself. */
+.contact-fab {
+  position: fixed;
+  z-index: 91; /* one above .scroll-top so the stack order is predictable */
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: calc(max(20px, env(safe-area-inset-bottom)) + 62px);
+  /* Glossy on desktop: an accent-tinted fill under the .glass-lite highlight
+     stack, plus a coloured cast shadow so it reads as a lit, raised object. */
+  background-color: color-mix(in srgb, var(--accent) 26%, var(--glass-lite-bg));
+  box-shadow: 0 2px 6px -2px var(--sh-contact),
+    0 14px 30px -14px color-mix(in srgb, var(--accent) 55%, transparent),
+    inset 0 1px 1.5px var(--glass-hi),
+    inset 0 -1px 2px -1px var(--sh-inneredge);
+  /* transform is animated by framer (whileHover/whileTap) — CSS only handles
+     the shadow, so the two never fight over the same inline property */
+  transition: box-shadow 220ms ease, color 200ms ease;
+  will-change: transform;
+}
+.contact-fab:hover {
+  box-shadow: 0 2px 6px -2px var(--sh-contact),
+    0 18px 38px -14px color-mix(in srgb, var(--accent) 68%, transparent),
+    inset 0 1px 1.5px var(--glass-hi),
+    inset 0 -1px 2px -1px var(--sh-inneredge);
+}
+/* The dialog carries its own "Contact Now", and a fixed control would float
+   over the scrim anyway. */
+[data-modal-open] .contact-fab {
+  display: none;
+}
+
+/* PHONES — frosted, not glossy.
+   A fixed control on a small screen sits on top of real content, so the
+   desktop treatment (accent fill, coloured cast shadow, specular highlights,
+   pointer sheen) is stripped back to a neutral frosted disc. The blur is kept
+   deliberately: it is what lets the button sit over text without hiding it,
+   and at 48x48 it is ~2.3K pixels — about 0.04% of the blur budget a full
+   panel costs, so it survives even the low-perf tier below. */
+@media (max-width: 639px) {
+  .contact-fab {
+    width: 48px;
+    height: 48px;
+    /* the page-level back-to-top is hidden here, so take the corner slot */
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+    background-color: color-mix(in srgb, var(--accent) 12%, var(--glass-bg));
+    background-image: none; /* drops the .glass-lite highlight gradients */
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 4px 14px -6px var(--sh-ambient), 0 0 0 1px var(--hairline);
+  }
+  /* no rim gradient, no drifting reflection — both read as glare at this size */
+  .contact-fab.glass-sheen::before,
+  .contact-fab.glass-sheen::after {
+    display: none;
+  }
+}
+/* NOTE: the low-perf tier strips backdrop-filter from .glass / .glass-refract,
+   but NOT from .glass-lite — which is what this button uses — so the frosting
+   above survives on phones without needing an exception here. */
 
 /* ---- back-to-top pill (pages + project modal) ---- */
 .scroll-top {
@@ -1119,6 +1303,11 @@ html.lenis body {
     padding: 12px 14px;
     font-size: 0.9rem;
     border-radius: 16px;
+  }
+  /* This rule out-specifies the utility padding, so the locked field needs its
+     icon gap restated or the value runs under the lock glyph. */
+  .gs-page .gs-input--locked {
+    padding-right: 38px;
   }
   .gs-page .gs-choice {
     font-size: 0.82rem;
@@ -1560,7 +1749,13 @@ html.lenis body {
    of the page. */
 .stage--in {
   animation: page-reveal 640ms cubic-bezier(0.22, 1, 0.36, 1) 560ms both;
-  will-change: transform, opacity;
+  /* NO will-change here.
+     .stage wraps the entire page — measured at 6.97 MPx (~28 MB of layer
+     memory at 1280x800). page-reveal is a ONE-SHOT that finishes 1.2s after
+     load, but will-change is permanent, so that layer was being held for the
+     whole session and every scroll composited against it. Browsers promote
+     opacity/transform animations on their own for the duration, then release
+     the layer — which is exactly what we want here. */
 }
 @keyframes page-reveal {
   0% {
@@ -1802,7 +1997,15 @@ html.lenis body {
   box-shadow: 0 10px 22px -10px rgba(20, 30, 70, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
     0 0 0 1px rgba(255, 255, 255, 0.5);
-  will-change: transform, opacity, filter;
+  /* `filter` was left in this list after the per-tile blur was removed — the
+     tiles only animate transform + opacity now. Naming a property that never
+     changes makes the compositor hold the layer more conservatively for no
+     gain, across all 16 tiles. Promotion is also scoped to when the sphere is
+     actually spinning (see .sphere-scene--live), since the rAF loop is already
+     IntersectionObserver-gated. */
+}
+.sphere-scene--live .tech-tag {
+  will-change: transform, opacity;
 }
 .dark .tech-tag {
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6),

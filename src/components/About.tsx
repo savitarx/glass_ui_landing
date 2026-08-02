@@ -75,7 +75,10 @@ export default function About() {
             </h3>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {TIMELINE.map((t, i) => (
-                <div key={t.year} className="relative">
+                /* keyed by index, not year — two milestones share "2024", and
+                   duplicate keys made React reconcile these rows against the
+                   wrong nodes on every re-render */
+                <div key={i} className="relative">
                   <GlassCard lite radius="rounded-[22px]" className="h-full p-5">
                     <div
                       className="text-[1.4rem] font-semibold tracking-tight"

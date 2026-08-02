@@ -5,6 +5,7 @@ import Button from "./Button";
 import SiteNav from "./Navbar";
 import { scrollToId } from "../hooks/useLenis";
 import { navigate } from "../hooks/useRoute";
+import { useIdleOffscreen } from "../hooks/useIdleOffscreen";
 
 /* A small floating glass widget used inside the hero artwork */
 function Widget({
@@ -42,6 +43,7 @@ function Widget({
 }
 
 export default function Hero() {
+  const art = useIdleOffscreen<HTMLDivElement>();
   return (
     <section id="home" className="px-4 pt-4 sm:pt-6">
       <GlassCard
@@ -133,7 +135,11 @@ export default function Hero() {
           </div>
 
           {/* Right — abstract floating glass artwork (hidden on phones for a clean, static hero) */}
-          <div className="relative mx-auto hidden h-[440px] w-full max-w-[460px] sm:block sm:h-[480px]">
+          {/* The five float-y widgets animate forever; parked once scrolled past. */}
+          <div
+            ref={art}
+            className="relative mx-auto hidden h-[440px] w-full max-w-[460px] sm:block sm:h-[480px]"
+          >
             {/* soft gradient wash behind the glass layers */}
             <div
               className="absolute inset-8 rounded-[36px] blur-2xl opacity-80"

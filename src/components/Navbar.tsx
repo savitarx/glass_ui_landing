@@ -34,6 +34,11 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
   const [shown, setShown] = useState(!floating);
   const openRef = useRef(open);
   openRef.current = open;
+  /* The floating bar hides ~1.1s after you stop scrolling. If the pointer is
+     resting on it (or a control inside it has keyboard focus) it must stay —
+     otherwise it vanishes out from under the cursor mid-click. */
+  const holdRef = useRef(false);
+  const idleRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -47,18 +52,18 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
     });
 
     let onScroll: (() => void) | undefined;
-    let idle: number | undefined;
     if (floating) {
       // Show while actively scrolling (past the hero); hide when idle or at top.
       onScroll = () => {
-        if (idle) window.clearTimeout(idle);
+        window.clearTimeout(idleRef.current);
         if (window.scrollY < 160) {
-          setShown(false);
+          // never yank it away while it is being pointed at or used
+          if (!holdRef.current && !openRef.current) setShown(false);
           return;
         }
         setShown(true);
-        idle = window.setTimeout(() => {
-          if (!openRef.current) setShown(false);
+        idleRef.current = window.setTimeout(() => {
+          if (!openRef.current && !holdRef.current) setShown(false);
         }, 1100);
       };
       window.addEventListener("scroll", onScroll, { passive: true });
@@ -67,9 +72,26 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
     return () => {
       obs.disconnect();
       if (onScroll) window.removeEventListener("scroll", onScroll);
-      if (idle) window.clearTimeout(idle);
+      window.clearTimeout(idleRef.current);
     };
   }, [floating]);
+
+  /* Pointer/focus hold. On leave the idle countdown is restarted rather than
+     hiding immediately, so moving the cursor off doesn't snap it away. */
+  const hold = () => {
+    holdRef.current = true;
+    window.clearTimeout(idleRef.current);
+  };
+  const unhold = () => {
+    holdRef.current = false;
+    if (!floating) return;
+    window.clearTimeout(idleRef.current);
+    idleRef.current = window.setTimeout(() => {
+      if (!openRef.current && !holdRef.current && window.scrollY >= 160) {
+        setShown(false);
+      }
+    }, 1100);
+  };
 
   const go = (id: string) => {
     setOpen(false);
@@ -240,6 +262,11 @@ export default function SiteNav({ floating = true }: { floating?: boolean }) {
         animate={{ y: shown || open ? 0 : -90, opacity: shown || open ? 1 : 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         style={{ pointerEvents: shown || open ? "auto" : "none" }}
+        onPointerEnter={hold}
+        onPointerLeave={unhold}
+        /* focus-within equivalent: tabbing into the bar holds it open too */
+        onFocusCapture={hold}
+        onBlurCapture={unhold}
         className="glass glass-strong glass-sheen nav-floating mt-4 flex w-full max-w-6xl items-center justify-between rounded-full py-2 pl-5 pr-2 shadow-glass-hover"
       >
         {logo}

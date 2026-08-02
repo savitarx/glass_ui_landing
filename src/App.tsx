@@ -20,6 +20,7 @@ import Reviews from "./components/Reviews";
 import About from "./components/About";
 import Help from "./components/Help";
 import Footer from "./components/Footer";
+import ContactFab from "./components/ContactFab";
 import GetStarted from "./pages/GetStarted";
 import Legal from "./pages/Legal";
 import Login from "./pages/Login";
@@ -122,6 +123,9 @@ function Shell() {
       <AmbientOrb />
 
       {!isStandalone && <Navbar />}
+      {/* Home only — the standalone pages either ARE the enquiry form or are a
+          short read, and it must not sit over the preloader. */}
+      {!isStandalone && !showing && <ContactFab />}
 
       {/* ONE .stage element for every route.
           There used to be a separate .stage inside each branch, so changing

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { ArrowUpRight, Plus } from "lucide-react";
 import GlassCard from "./GlassCard";
 import SectionHeading from "./SectionHeading";
@@ -27,7 +27,16 @@ const FAQ = [
   },
 ];
 
-function Item({ q, a }: { q: string; a: string }) {
+function Item({
+  q,
+  a,
+  onToggle,
+}: {
+  q: string;
+  a: string;
+  /** lets the parent freeze the surrounding glass for the duration */
+  onToggle: () => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <GlassCard
@@ -36,7 +45,10 @@ function Item({ q, a }: { q: string; a: string }) {
       className="overflow-hidden transition-shadow duration-400"
     >
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          onToggle();
+          setOpen((o) => !o);
+        }}
         className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
       >
         <span className="text-[1.02rem] font-medium">{q}</span>
@@ -53,28 +65,53 @@ function Item({ q, a }: { q: string; a: string }) {
           <Plus size={16} />
         </motion.span>
       </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <p className="px-6 pb-6 text-[0.95rem] leading-relaxed text-soft">
-              {a}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Open/close is a pure CSS grid-row transition (0fr → 1fr).
+          It used to be a framer `height: 0 → auto` animation, which measured
+          the content and then wrote style.height from JS on EVERY frame.
+          Handing the interpolation to CSS removes the per-frame JS and the
+          forced measurement; the parent additionally freezes the surrounding
+          backdrop-filter so the growing card is not re-blurred each frame. */}
+      <div className={`faq-panel${open ? " faq-panel--open" : ""}`}>
+        <div className="faq-panel__inner">
+          <p className="px-6 pb-6 text-[0.95rem] leading-relaxed text-soft">
+            {a}
+          </p>
+        </div>
+      </div>
     </GlassCard>
   );
 }
 
 export default function Help() {
+  const card = useRef<HTMLDivElement>(null);
+  const clear = useRef(0);
+
+  /* An expanding panel changes this card's height on every frame, and a
+     backdrop-filter re-samples its whole backdrop whenever its geometry
+     changes — ~0.8 MPx of re-blur per frame, which is what made the accordion
+     stutter. The blur is frozen for the length of the transition and restored
+     straight after. It reads as unchanged because the only thing behind this
+     card is the soft ambient gradient: blurring a smooth gradient is close to
+     a no-op, which is exactly why it is safe to drop here and not elsewhere. */
+  const freezeGlass = () => {
+    const el = card.current;
+    if (!el) return;
+    el.classList.add("glass-frozen");
+    window.clearTimeout(clear.current);
+    clear.current = window.setTimeout(
+      () => el.classList.remove("glass-frozen"),
+      340
+    );
+  };
+
+  useEffect(() => () => window.clearTimeout(clear.current), []);
+
   return (
     <section id="help" className="px-4 pt-14 sm:pt-20">
-      <GlassCard className="mx-auto max-w-4xl px-6 py-12 sm:px-12 sm:py-16">
+      <GlassCard
+        ref={card}
+        className="mx-auto max-w-4xl px-6 py-12 sm:px-12 sm:py-16"
+      >
         <SectionHeading
           eyebrow="Help"
           title="Frequently asked"
@@ -84,7 +121,7 @@ export default function Help() {
         <div className="mx-auto mt-10 max-w-2xl space-y-4">
           {FAQ.map((f, i) => (
             <Reveal key={f.q} delay={i * 0.05}>
-              <Item {...f} />
+              <Item {...f} onToggle={freezeGlass} />
             </Reveal>
           ))}
         </div>

@@ -49,7 +49,7 @@ export default function Login() {
   };
 
   return (
-    <main className="gs-page relative z-[1] mx-auto flex min-h-[80vh] max-w-2xl items-center px-4 py-10 sm:px-8 sm:py-16">
+    <main className="gs-page relative z-[1] mx-auto flex min-h-[80svh] max-w-2xl items-center px-4 py-10 sm:px-8 sm:py-16">
       <div className="gs-wash gs-wash--a" aria-hidden />
 
       <div className="w-full">

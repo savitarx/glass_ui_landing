@@ -132,6 +132,10 @@ export default function TechSphere() {
         const now = e.isIntersecting;
         if (now === visible) return;
         visible = now;
+        /* Promote the 16 tiles only while they are actually moving. Off
+           screen they are static, so holding a compositor layer each just
+           costs GPU memory. */
+        scene.classList.toggle("sphere-scene--live", visible && !reduce);
         if (visible && !reduce && !raf) {
           last = 0;
           raf = requestAnimationFrame(loop);
@@ -206,12 +210,17 @@ export default function TechSphere() {
       render(Math.min(dt, 100));
     };
     render(0);
+    /* The observer early-returns when its first report matches the initial
+       `visible = true`, so the class has to be set here as well or it would
+       never appear on a sphere that is on screen at load. */
+    scene.classList.toggle("sphere-scene--live", !reduce);
     if (!reduce) raf = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
       io.disconnect();
+      scene.classList.remove("sphere-scene--live");
     };
   }, []);
 

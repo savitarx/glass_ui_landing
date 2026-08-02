@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   Handshake,
+  Lock,
   Rocket,
   Sparkles,
   Target,
@@ -90,6 +91,7 @@ function Field({
   hint,
   invalid,
   id,
+  locked,
 }: {
   label: string;
   value: string;
@@ -100,6 +102,9 @@ function Field({
   hint?: string;
   invalid?: string;
   id: string;
+  /** Value comes from a trusted source (the signed-in account) — show it, but
+      don't let it be edited. */
+  locked?: boolean;
 }) {
   return (
     <div>
@@ -115,18 +120,33 @@ function Field({
           </span>
         )}
       </label>
-      <input
-        id={id}
-        type={type}
-        value={value}
-        required={required}
-        aria-invalid={!!invalid}
-        aria-describedby={hint || invalid ? `${id}-desc` : undefined}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="gs-input w-full rounded-2xl px-4 py-3.5 text-[0.95rem] outline-none"
-        style={invalid ? { borderColor: "#e0576f" } : undefined}
-      />
+      <div className="relative">
+        <input
+          id={id}
+          type={type}
+          value={value}
+          required={required}
+          /* readOnly, not disabled: the value stays selectable, copyable and
+             announced normally — disabled would grey it out and drop it from
+             the tab order for no benefit. */
+          readOnly={locked}
+          aria-invalid={!!invalid}
+          aria-describedby={hint || invalid ? `${id}-desc` : undefined}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          className={`gs-input w-full rounded-2xl py-3.5 text-[0.95rem] outline-none ${
+            locked ? "gs-input--locked pl-4 pr-11" : "px-4"
+          }`}
+          style={invalid ? { borderColor: "#e0576f" } : undefined}
+        />
+        {locked && (
+          <Lock
+            aria-hidden
+            className="pointer-events-none absolute right-4 top-1/2 h-[15px] w-[15px] -translate-y-1/2"
+            style={{ color: "var(--text-dim)" }}
+          />
+        )}
+      </div>
       {(hint || invalid) && (
         <p
           id={`${id}-desc`}
@@ -467,6 +487,11 @@ export default function GetStarted() {
                     onChange={setEmail}
                     placeholder="john@company.com"
                     invalid={errors.email}
+                    /* Locked once signed in: this is the verified Google
+                       address, and it's the one the server reads off the ID
+                       token anyway — an editable box would just be a lie. */
+                    locked={!!user}
+                    hint={user ? "From your Google account" : undefined}
                   />
                 </div>
                 <div className="mt-6">
