@@ -32,7 +32,7 @@ type Project = {
 
 const PROJECTS: Project[] = [
   {
-    title: "SIMS",
+    title: "SIMS (Student Inventory Management System)",
     desc: " Centralized student records management system.",
     detail:
       "Every institution has resources that keep learning moving forward.SIMS ensures those resources are always organized, accessible, and ready when they’re needed most.",
@@ -87,160 +87,167 @@ const PROJECTS: Project[] = [
     ],
   },
   {
-    title: "Lumen Health",
-    desc: "Patient-first telehealth platform focused on clarity and accessibility.",
-    detail:
-      "Lumen needed a telehealth platform that felt reassuring rather than clinical. We designed an accessible, patient-first flow — from booking to consultation to follow-up — meeting WCAG AA throughout, with a component library that the in-house team now extends on their own.",
-    meta: "2023 · Healthcare · Web App",
-    tech: ["Next.js", "Node", "Accessibility"],
-    grad: "linear-gradient(140deg,#9eecd6,#8fb4ff)",
-    tagline:
-      "A telehealth platform that reassures rather than intimidates — accessible to WCAG AA throughout.",
-    facts: [
-      { label: "Timeline", value: "7 months" },
-      { label: "Team", value: "1 designer · 3 engineers" },
-      { label: "Engagement", value: "End-to-end product" },
-      { label: "Compliance", value: "WCAG 2.1 AA · HIPAA" },
-    ],
-    stats: [
-      { value: "+41%", label: "Appointments completed" },
-      { value: "AA", label: "Verified on every flow" },
-      { value: "−28%", label: "Support tickets" },
-    ],
-    sections: [
-      {
-        heading: "The brief",
-        body: "Lumen's booking funnel lost almost half its users between choosing a clinician and joining the call. The product worked; it simply felt like paperwork at the exact moment people were most anxious.",
-      },
-      {
-        heading: "Designing for a worried user",
-        body: "We rewrote the flow around a single question at a time, in plain language, with the next step always visible. Nothing is asked twice, and nothing medical is phrased in a way that invites panic.",
-        bullets: [
-          "Booking reduced from 11 fields across 4 screens to 5 fields across 2",
-          "A pre-call check that tests camera, microphone and bandwidth before the appointment",
-          "Plain-language summaries after every consultation, written for a 12-year-old reading level",
-        ],
-      },
-      {
-        heading: "Accessibility as a constraint, not a pass",
-        body: "AA was treated as a build requirement rather than an audit at the end. Every interactive element was keyboard-tested and screen-reader-tested as part of its definition of done.",
-        bullets: [
-          "Full keyboard paths through booking, consultation and follow-up",
-          "Contrast validated automatically in CI — a failing ratio breaks the build",
-          "Focus order and live-region announcements verified with NVDA and VoiceOver",
-        ],
-      },
-      {
-        heading: "Under the hood",
-        body: "Next.js with server-rendered routes so the first meaningful paint arrives fast on hospital wifi, a Node service layer brokering the records API, and a component library the in-house team now extends without us.",
-      },
-      {
-        heading: "The outcome",
-        body: "Completed appointments rose 41% quarter on quarter, and the drop-off between selection and call effectively disappeared. The support team's most common ticket — 'my camera isn't working' — fell away once the pre-call check shipped.",
-      },
-    ],
-  },
+  title: "Clinical Management Software",
+  desc: "Centralized patient care and hospital management system.",
+  detail:
+    "Designed to streamline every stage of the patient journey—from registration and consultation to pharmacy, laboratory, billing, and visit completion—through one secure, integrated platform.",
+  meta: "2026 · Healthcare Management System",
+  tech: ["React", "Spring Boot", "AWS"],
+  grad: "linear-gradient(140deg,#8fd3f4,#84fab0)",
+  tagline:
+    "Connected Care. Smarter Healthcare.",
+  facts: [
+    { label: "Timeline", value: "3 months" },
+    { label: "Team", value: "2 designers · 3 engineers" },
+    { label: "Engagement", value: "Healthcare Management System" },
+    { label: "Platforms", value: "Web" },
+  ],
+  stats: [
+    { value: "8", label: "Core modules" },
+    { value: "100%", label: "Digital workflow" },
+    { value: "24/7", label: "Patient records access" },
+  ],
+  sections: [
+    {
+      heading: "The brief",
+      body: "Healthcare providers require a seamless way to manage patient information, consultations, prescriptions, investigations, and billing. The Clinical Management Software centralizes every stage of care into a single digital platform, improving efficiency, accuracy, and patient experience.",
+    },
+    {
+      heading: "The challenge",
+      body: "Hospitals often rely on disconnected systems and manual processes, making patient management slow and error-prone. Coordinating information between doctors, nurses, pharmacies, laboratories, and billing departments becomes increasingly difficult as patient volume grows.",
+      bullets: [
+        "Patient information scattered across departments leads to delays and duplicate records.",
+        "Manual prescriptions, investigations, and billing increase the risk of errors and longer waiting times.",
+        "Lack of real-time coordination between clinical staff impacts workflow efficiency and patient care.",
+      ],
+    },
+    {
+      heading: "What we built",
+      body: "We developed a fully integrated Clinical Management System that digitizes the complete patient lifecycle, allowing hospitals to manage consultations, prescriptions, diagnostics, pharmacy, and payments from a single platform.",
+      bullets: [
+        "Digitized the complete patient journey from registration to visit completion with real-time tracking.",
+        "Integrated doctors, nurses, pharmacy, laboratory, and billing into one centralized workflow.",
+        "Enabled electronic prescriptions, investigation requests, automated billing, and centralized patient history for faster, more accurate healthcare delivery.",
+      ],
+    },
+    {
+      heading: "Under the hood",
+      body: "Built using React and Spring Boot, the platform follows a secure, scalable architecture with role-based access control. Integrated modules communicate seamlessly to provide real-time patient updates, digital prescriptions, inventory synchronization, and secure medical record management.",
+    },
+    {
+      heading: "The outcome",
+      body: "The Clinical Management Software replaced fragmented hospital processes with a unified digital ecosystem. By reducing paperwork, improving collaboration between departments, and maintaining complete patient histories, the platform enables hospitals to deliver faster, safer, and more efficient patient care.",
+    },
+  ],
+},
+ {
+  title: "Website Design, Hosting & Management",
+  desc: "End-to-end website development and cloud hosting solutions.",
+  detail:
+    "We design modern, high-performance websites, host them on secure cloud infrastructure, and provide continuous maintenance, monitoring, and optimization to keep your business online and growing.",
+  meta: "2026 · Web Development & Cloud Services",
+  tech: ["React", "Spring Boot", "AWS", "Cloudflare"],
+  grad: "linear-gradient(140deg,#7dd3fc,#818cf8)",
+  tagline:
+    "Build. Host. Scale.",
+  facts: [
+    { label: "Hosting", value: "Cloud Infrastructure" },
+    { label: "Security", value: "SSL + CDN" },
+    { label: "Maintenance", value: "24/7 Monitoring" },
+    { label: "Platforms", value: "Web" },
+  ],
+  stats: [
+    { value: "99.98%", label: "Uptime SLA" },
+    { value: "24/7", label: "Monitoring" },
+    { value: "30 Days", label: "Backup Retention" },
+  ],
+  sections: [
+    {
+      heading: "The brief",
+      body: "A business website should be more than an online presence—it should attract customers, perform reliably, and scale effortlessly. We provide complete website design, hosting, and management services under one roof.",
+    },
+    {
+      heading: "The challenge",
+      body: "Many businesses struggle with outdated websites, unreliable hosting, and ongoing maintenance. Managing security, updates, backups, and performance across multiple providers often leads to downtime and unnecessary complexity.",
+      bullets: [
+        "Slow-loading websites reduce customer engagement and search rankings.",
+        "Managing hosting, domains, security, and maintenance separately increases operational overhead.",
+        "Lack of regular updates and monitoring exposes websites to downtime and security risks.",
+      ],
+    },
+    {
+      heading: "What we built",
+      body: "We deliver complete web solutions that combine custom design, enterprise-grade hosting, and proactive maintenance to ensure every website remains secure, fast, and available.",
+      bullets: [
+        "Designed responsive websites for businesses, e-commerce, portfolios, and custom web applications.",
+        "Deployed websites on scalable cloud infrastructure with CDN, SSL, automated backups, and performance optimization.",
+        "Provided continuous maintenance, SEO setup, analytics integration, content updates, and proactive monitoring.",
+      ],
+    },
+    {
+      heading: "Under the hood",
+      body: "Powered by modern technologies including React, Spring Boot, AWS, and Cloudflare, every website is optimized for speed, scalability, and security. Automated deployments, SSL renewal, CDN caching, and daily backups ensure maximum reliability with minimal maintenance.",
+    },
+    {
+      heading: "The outcome",
+      body: "Businesses receive a fully managed digital platform that delivers exceptional performance, improved search visibility, stronger security, and reliable uptime—allowing them to focus on growth while we manage the technology.",
+    },
+  ],
+},
   {
-    title: "Cove Commerce",
-    desc: "Headless storefront with a refined, editorial shopping experience.",
-    detail:
-      "A headless storefront where the shopping experience reads like an editorial. We paired a GraphQL commerce backend with buttery page transitions and rich media, lifting conversion while keeping the brand's quiet, premium tone intact.",
-    meta: "2024 · E-commerce · Storefront",
-    tech: ["Vite", "GraphQL", "UX"],
-    grad: "linear-gradient(140deg,#ffb2d8,#b9a8ff)",
-    tagline:
-      "A headless storefront where the shopping experience reads like an editorial.",
-    facts: [
-      { label: "Timeline", value: "5 months" },
-      { label: "Team", value: "2 designers · 3 engineers" },
-      { label: "Engagement", value: "Storefront rebuild" },
-      { label: "Markets", value: "8 regions · 4 currencies" },
-    ],
-    stats: [
-      { value: "+23%", label: "Conversion rate" },
-      { value: "0.9s", label: "Largest contentful paint" },
-      { value: "−45%", label: "Bounce on product pages" },
-    ],
-    sections: [
-      {
-        heading: "The brief",
-        body: "Cove sells considered, expensive objects, but their storefront looked like every other template — dense grids, aggressive badges, and a checkout that shouted. The brand's restraint disappeared the moment someone tried to buy something.",
-      },
-      {
-        heading: "Editorial, not catalogue",
-        body: "We treated each product page as a piece of writing rather than a spec sheet. Photography leads, copy breathes, and the specifications sit below the fold for the people who want them.",
-        bullets: [
-          "Full-bleed imagery with art-directed crops per breakpoint",
-          "One clear call to action per screen — no competing buttons",
-          "Related products framed as 'goes well with' rather than an upsell rail",
-        ],
-      },
-      {
-        heading: "Speed as a design feature",
-        body: "Premium reads as fast. We moved the storefront onto a headless GraphQL backend and shipped a Vite build tuned for a sub-second first paint, even on mid-range Android over 4G.",
-        bullets: [
-          "Route-level code splitting with predictive prefetch on hover and viewport",
-          "Images served as AVIF with WebP fallback, sized per device pixel ratio",
-          "Cart state resolved optimistically so adding an item never blocks on the network",
-        ],
-      },
-      {
-        heading: "The outcome",
-        body: "Conversion rose 23% against the previous storefront on matched traffic, and the average session covered more products, not fewer — people browsed further because browsing stopped feeling like work.",
-      },
-    ],
-  },
-  {
-    title: "Northwind CRM",
-    desc: "An operations suite that makes complex workflows feel effortless.",
-    detail:
-      "Northwind's teams juggled dense, complex workflows. We distilled them into an operations suite that feels effortless — progressive disclosure, keyboard-first flows, and a performant Rust core — so power users move fast without ever feeling overwhelmed.",
-    meta: "2023 · SaaS · Operations",
-    tech: ["React", "Rust", "System Design"],
-    grad: "linear-gradient(140deg,#8fb4ff,#9eecd6)",
-    tagline:
-      "Dense, complex operations work distilled into something that feels effortless.",
-    facts: [
-      { label: "Timeline", value: "11 months" },
-      { label: "Team", value: "1 designer · 5 engineers" },
-      { label: "Engagement", value: "Platform rebuild" },
-      { label: "Scale", value: "12M records · 900 seats" },
-    ],
-    stats: [
-      { value: "−54%", label: "Time on core task" },
-      { value: "16ms", label: "P95 interaction latency" },
-      { value: "900", label: "Daily active operators" },
-    ],
-    sections: [
-      {
-        heading: "The brief",
-        body: "Northwind's operators live in the product for eight hours a day. They had learned to work around it — spreadsheets on second monitors, a shared document of tribal knowledge, and a training period measured in weeks.",
-      },
-      {
-        heading: "Designing for expertise",
-        body: "Software for people who use it all day should optimise for the hundredth hour, not the first. We inverted the usual priorities: density over whitespace, keyboard over mouse, recall over discovery.",
-        bullets: [
-          "A command palette covering every action in the product",
-          "Progressive disclosure so complexity appears on demand, not by default",
-          "Bulk operations on any list, with an undo window on everything destructive",
-          "Layouts operators can save and reuse per workflow",
-        ],
-      },
-      {
-        heading: "Under the hood",
-        body: "The bottleneck was never the UI framework — it was pulling 12 million records through a general-purpose API. We moved the aggregation layer to Rust and streamed results into a virtualised React table.",
-        bullets: [
-          "Rust service handling filtering and aggregation close to the data",
-          "Virtualised rendering so list size stops mattering to the client",
-          "Optimistic writes with server reconciliation, so the UI never waits on a round trip",
-        ],
-      },
-      {
-        heading: "The outcome",
-        body: "The core daily task went from just over four minutes to under two. New operators reached competence in days rather than weeks, and the shared workarounds document was quietly deleted.",
-      },
-    ],
-  },
+  title: "Cloud Deployments & Support Management",
+  desc: "Scalable cloud deployment, migration, and managed infrastructure services.",
+  detail:
+    "Helping businesses migrate, deploy, and operate modern cloud infrastructure with secure architectures, automated deployments, disaster recovery, and 24/7 operational support.",
+  meta: "2026 · Cloud Engineering & DevOps",
+  tech: ["AWS", "Azure", "Google Cloud"],
+  grad: "linear-gradient(140deg,#38bdf8,#6366f1)",
+  tagline:
+    "Deploy Faster. Operate Smarter.",
+  facts: [
+    { label: "Clouds", value: "AWS · Azure · GCP" },
+    { label: "Deployment", value: "Cloud & Kubernetes" },
+    { label: "Support", value: "24/7 Managed Services" },
+    { label: "Platforms", value: "Cloud" },
+  ],
+  stats: [
+    { value: "24/7", label: "Infrastructure Support" },
+    { value: "99.99%", label: "High Availability" },
+    { value: "Zero", label: "Downtime Migrations" },
+  ],
+  sections: [
+    {
+      heading: "The brief",
+      body: "Modern organizations require reliable cloud infrastructure that can scale with business growth. Our Cloud Deployment & Support services cover everything from migration and deployment to continuous monitoring, maintenance, and operational support.",
+    },
+    {
+      heading: "The challenge",
+      body: "Migrating applications to the cloud while maintaining availability can be complex. Organizations also face challenges managing Kubernetes clusters, deployment pipelines, disaster recovery, and infrastructure reliability across multiple environments.",
+      bullets: [
+        "Cloud migrations require careful planning to minimize downtime and business disruption.",
+        "Managing containers, Kubernetes clusters, and cloud infrastructure demands specialized expertise.",
+        "Ensuring high availability, disaster recovery, and continuous monitoring increases operational complexity.",
+      ],
+    },
+    {
+      heading: "What we built",
+      body: "We deliver end-to-end cloud deployment solutions that automate infrastructure provisioning, streamline application delivery, and provide continuous operational support for mission-critical systems.",
+      bullets: [
+        "Executed cloud migrations with zero-downtime deployment strategies and infrastructure modernization.",
+        "Built Kubernetes platforms, serverless applications, CI/CD pipelines, and Infrastructure as Code using Terraform.",
+        "Implemented disaster recovery, multi-region architectures, proactive monitoring, and 24/7 managed support services.",
+      ],
+    },
+    {
+      heading: "Under the hood",
+      body: "Powered by Kubernetes, Terraform, AWS, Azure, and Google Cloud, the platform leverages Infrastructure as Code, automated CI/CD pipelines, container orchestration, monitoring, logging, and disaster recovery solutions to deliver secure, scalable, and resilient cloud environments.",
+    },
+    {
+      heading: "The outcome",
+      body: "Organizations gain a resilient cloud platform that accelerates software delivery, improves infrastructure reliability, minimizes downtime, and provides continuous operational support. With automated deployments and proactive monitoring, teams can focus on innovation instead of infrastructure management.",
+    },
+  ],
+},
   {
     title: "Studio Muse",
     desc: "A creative portfolio engine with buttery transitions and rich media.",
@@ -291,57 +298,67 @@ const PROJECTS: Project[] = [
       },
     ],
   },
-  {
-    title: "Atlas Analytics",
-    desc: "Quiet, legible dashboards that turn data into confident decisions.",
-    detail:
-      "Atlas turns dense data into confident decisions. We built quiet, legible dashboards with an accessible colour system and D3-powered charts that stay readable at a glance — no chart junk, just signal.",
-    meta: "2023 · Analytics · Dashboard",
-    tech: ["React", "D3", "Data Viz"],
-    grad: "linear-gradient(140deg,#a8d8ff,#b9a8ff)",
-    tagline:
-      "Dense data turned into confident decisions — no chart junk, just signal.",
-    facts: [
-      { label: "Timeline", value: "6 months" },
-      { label: "Team", value: "1 designer · 3 engineers" },
-      { label: "Engagement", value: "Dashboard + design system" },
-      { label: "Data", value: "40M events / day" },
-    ],
-    stats: [
-      { value: "−70%", label: "Time to first insight" },
-      { value: "8", label: "Colour-blind-safe series" },
-      { value: "120ms", label: "Median chart render" },
-    ],
-    sections: [
-      {
-        heading: "The brief",
-        body: "Atlas had built every chart type a customer had ever requested. The result was a dashboard nobody could read: eleven colours competing for attention, four different ways to show a trend, and no visual hierarchy telling anyone where to look first.",
-      },
-      {
-        heading: "Fewer charts, better chosen",
-        body: "We cut the chart library roughly in half and wrote a form heuristic that maps a question to exactly one appropriate visualisation, so the product stops offering choices that lead somewhere bad.",
-        bullets: [
-          "A categorical palette validated for deuteranopia, protanopia and tritanopia",
-          "Sequential and diverging scales derived from the same base hues",
-          "One accent reserved exclusively for the metric currently under investigation",
-          "Every chart legible in light and dark without a separate palette",
-        ],
-      },
-      {
-        heading: "Under the hood",
-        body: "D3 handles scales and shape generation while React owns the DOM, which keeps rendering predictable and lets us memoise aggressively. Heavy aggregation is pushed to the query layer so the browser only ever receives what it draws.",
-        bullets: [
-          "Downsampling with LTTB so a million points still read as the same curve",
-          "Canvas for dense scatter plots, SVG everywhere legibility matters more",
-          "Tooltips and crosshairs driven by a single pointer handler per chart",
-        ],
-      },
-      {
-        heading: "The outcome",
-        body: "Time from opening the dashboard to stating a conclusion fell by roughly 70% in moderated testing. The support team stopped receiving screenshots captioned 'what am I looking at?'",
-      },
-    ],
-  },
+{
+  title: "Research Cloud",
+  desc: "Cloud-based research computing platform for institutions. (Currently in Development)",
+  detail:
+    "An upcoming self-service research computing platform that enables universities and research institutions to provision cloud workstations, GPU environments, and HPC workloads on demand while maintaining centralized governance, budget control, and security.",
+  meta: "2026 · Research Computing Platform (In Development)",
+  tech: [
+    "Terraform",
+    "GitHub Actions",
+    "Amazon Cognito",
+    "JupyterHub",
+    "Amazon FSx",
+    "CloudWatch"
+  ],
+  grad: "linear-gradient(140deg,#67e8f9,#8b5cf6)",
+  tagline:
+    "Accelerating Research. Powered by the Cloud.",
+  facts: [
+    { label: "Status", value: "In Development" },
+    { label: "Cloud", value: "AWS" },
+    { label: "Deployment", value: "Institution Managed" },
+    { label: "Platforms", value: "Web" },
+  ],
+  stats: [
+    { value: "GPU", label: "ML Workloads" },
+    { value: "HPC", label: "Batch Computing" },
+    { value: "24/7", label: "Planned Availability" },
+  ],
+  sections: [
+    {
+      heading: "The brief",
+      body: "Research Cloud is an upcoming platform designed to simplify access to high-performance computing for universities and research institutions. Researchers will be able to launch GPU workstations, virtual desktops, and machine learning environments within minutes, while administrators maintain complete control over budgets, security, and resource allocation.",
+    },
+    {
+      heading: "The challenge",
+      body: "Many institutions depend on limited on-premise infrastructure, resulting in resource bottlenecks, long waiting times, and difficult-to-manage cloud environments. As research demands continue to grow, institutions require a scalable platform that balances computational power with governance and cost efficiency.",
+      bullets: [
+        "Researchers often wait for access to shared computing resources, slowing project timelines.",
+        "Managing cloud costs and resource allocation across departments is difficult without centralized governance.",
+        "Deploying specialized research environments manually increases operational complexity and maintenance overhead.",
+      ],
+    },
+    {
+      heading: "What we're building",
+      body: "Research Cloud is currently under active development with a focus on delivering a secure, self-service platform that allows institutions to provision research infrastructure on demand while maintaining complete administrative oversight.",
+      bullets: [
+        "Self-service provisioning of virtual desktops, GPU workstations, machine learning environments, and HPC compute clusters.",
+        "Integrated budget controls, project-based resource allocation, usage tracking, and automated cost management.",
+        "Institution-wide governance with SSO integration, software catalogs, approval workflows, and automated resource lifecycle management.",
+      ],
+    },
+    {
+      heading: "Under the hood",
+      body: "Built using React, Spring Boot, PostgreSQL, Docker, Kubernetes, and AWS cloud services, the platform leverages Amazon EKS for container orchestration, Amazon EC2 for scalable compute, Amazon S3 and Amazon FSx for secure research data storage, Amazon Cognito for authentication, Terraform for Infrastructure as Code, GitHub Actions for automated deployments, JupyterHub for machine learning environments, and CloudWatch for monitoring and operational insights. The architecture is currently being developed to deliver a secure, scalable, and enterprise-grade research computing platform.",
+    },
+    {
+      heading: "Expected outcome",
+      body: "Once completed, Research Cloud will provide institutions with a centralized research computing platform that accelerates innovation while reducing infrastructure complexity. Researchers will gain instant access to powerful computing resources, and administrators will benefit from improved governance, predictable cloud spending, and streamlined operations.",
+    },
+  ],
+}
 ];
 
 function ProjectModal({ p, onClose }: { p: Project; onClose: () => void }) {
@@ -589,6 +606,7 @@ export default function Projects() {
               <TiltCard className="group h-full">
                 <GlassCard
                   lite
+                  glow
                   radius="rounded-[26px]"
                   role="button"
                   tabIndex={0}
@@ -632,7 +650,13 @@ export default function Projects() {
                     ))}
                   </div>
 
-                  <span className="mt-5 inline-flex items-center gap-1.5 text-[0.9rem] font-medium accent">
+                  {/* mt-auto, not mt-5: the card is a flex column of varying
+                      content (description length and how many rows the tech
+                      tags wrap onto), so a fixed top margin left this label
+                      floating at a different height in every card. Auto margin
+                      absorbs the slack and pins it to the bottom, so it lines
+                      up across the row without touching any text above it. */}
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-[0.9rem] font-medium accent">
                     View project
                     <ArrowUpRight
                       size={16}

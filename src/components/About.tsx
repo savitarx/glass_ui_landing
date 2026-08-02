@@ -43,6 +43,7 @@ export default function About() {
             <Reveal key={p.title} delay={i * 0.08}>
               <GlassCard
                 lite
+                glow
                 radius="rounded-[24px]"
                 className="h-full p-6 transition-shadow duration-400 hover:shadow-glass-hover"
               >
@@ -79,7 +80,7 @@ export default function About() {
                    duplicate keys made React reconcile these rows against the
                    wrong nodes on every re-render */
                 <div key={i} className="relative">
-                  <GlassCard lite radius="rounded-[22px]" className="h-full p-5">
+                  <GlassCard lite glow radius="rounded-[22px]" className="h-full p-5">
                     <div
                       className="text-[1.4rem] font-semibold tracking-tight"
                       style={{ color: "var(--accent)" }}

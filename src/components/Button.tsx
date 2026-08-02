@@ -17,7 +17,7 @@ export default function Button({
   type?: "button" | "submit";
 }) {
   const base =
-    "relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.95rem] font-medium transition-shadow duration-300 ease-apple select-none";
+    "glass-glow glass-glow--soft relative overflow-hidden inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[0.95rem] font-medium transition-shadow duration-300 ease-apple select-none";
 
   // Softer, more diffused glow (larger blur, lower opacity) that lifts on hover.
   const styles =
@@ -52,6 +52,10 @@ export default function Button({
       <span className="relative z-[1] inline-flex items-center gap-2">
         {children}
       </span>
+      {/* Same travelling edge light as the cards, dialled well down (see
+          .glass-glow--soft). A 1px band on the rim only — it never crosses the
+          label, and it leaves the existing gloss, shadow and lift untouched. */}
+      <span aria-hidden className="glass-glow__ring" />
     </motion.button>
   );
 }

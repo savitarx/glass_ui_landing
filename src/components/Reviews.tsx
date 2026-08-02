@@ -46,6 +46,7 @@ function ReviewCard({ r }: { r: (typeof REVIEWS)[number] }) {
   return (
     <GlassCard
       lite
+      glow
       radius="rounded-[26px]"
       className="mx-3 flex w-[340px] shrink-0 flex-col p-6 sm:w-[380px]"
     >

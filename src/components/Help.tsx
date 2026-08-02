@@ -41,6 +41,7 @@ function Item({
   return (
     <GlassCard
       lite
+      glow
       radius="rounded-[22px]"
       className="overflow-hidden transition-shadow duration-400"
     >
@@ -86,21 +87,22 @@ export default function Help() {
   const card = useRef<HTMLDivElement>(null);
   const clear = useRef(0);
 
-  /* An expanding panel changes this card's height on every frame, and a
-     backdrop-filter re-samples its whole backdrop whenever its geometry
-     changes — ~0.8 MPx of re-blur per frame, which is what made the accordion
-     stutter. The blur is frozen for the length of the transition and restored
-     straight after. It reads as unchanged because the only thing behind this
-     card is the soft ambient gradient: blurring a smooth gradient is close to
-     a no-op, which is exactly why it is safe to drop here and not elsewhere. */
+  /* An expanding panel reflows the page on every frame, and a backdrop-filter
+     re-samples its whole backdrop whenever the content behind it moves — so
+     EVERY on-screen glass panel re-blurs each frame, not just this card (the
+     floating navbar is the other big one). That is what makes the accordion
+     stutter. Freezing only this card was not enough.
+
+     So the freeze goes on <html>, exactly like the existing data-modal-open
+     rule, and lasts only as long as the transition. Nothing else changes —
+     the fills, borders and sheens all stay put, so it reads as unchanged. */
   const freezeGlass = () => {
-    const el = card.current;
-    if (!el) return;
-    el.classList.add("glass-frozen");
+    const root = document.documentElement;
+    root.setAttribute("data-glass-freeze", "");
     window.clearTimeout(clear.current);
     clear.current = window.setTimeout(
-      () => el.classList.remove("glass-frozen"),
-      340
+      () => root.removeAttribute("data-glass-freeze"),
+      260
     );
   };
 
@@ -133,6 +135,7 @@ export default function Help() {
               above, so it reads as glass in both themes */}
           <GlassCard
             lite
+            glow
             radius="rounded-[24px]"
             className="mx-auto mt-10 max-w-2xl px-6 py-7 text-center sm:px-8"
           >

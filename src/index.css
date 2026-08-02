@@ -91,6 +91,16 @@
      and white-on-accent buttons gain contrast from this too */
   --accent: #5b4ae0;
   --accent-2: #6f9bf0;
+  /* Specular sweep — a light catching the edge, NOT a coloured glow.
+     hot  = the highlight itself, always white; light is white.
+     warm = its soft halo.
+     shade = the refraction line that trails it. On a pale panel a white
+     highlight alone is barely 1.4:1, so what actually makes the edge read as
+     glass is this darker band beside it — the same bright/dark pair you see
+     on a real bevelled edge. */
+  --glow-hot: #ffffff;
+  --glow-warm: rgba(255, 255, 255, 0.9);
+  --glow-shade: rgba(26, 24, 52, 0.34);
   --hairline: rgba(20, 20, 40, 0.12);
   /* dialog surfaces: frosted when blur is available, denser when it isn't */
   /* translucent enough to read as glass over the scrim — there was ~10:1 of
@@ -157,6 +167,12 @@
 
   --accent: #9a8dff;
   --accent-2: #8fb4ff;
+  /* Dark panels: the white catch carries the whole effect on its own, so the
+     refraction line is nearly absent — a dark band on a dark card would just
+     read as a gap in the ring. */
+  --glow-hot: #ffffff;
+  --glow-warm: rgba(255, 255, 255, 0.6);
+  --glow-shade: rgba(255, 255, 255, 0.05);
   --hairline: rgba(255, 255, 255, 0.14);
   --modal-bg: rgba(26, 28, 41, 0.66);
   --modal-bg-solid: rgba(23, 25, 36, 0.93);
@@ -652,9 +668,18 @@ html.lenis body {
   border-radius: 20px;
   transition: border-color 200ms ease, box-shadow 200ms ease;
 }
+/* Placeholder sits a clear step lighter than typed text, so the two are never
+   mistaken for each other — but it is still ordinary sharp text.
+
+   Mixed toward the background rather than given a blanket `opacity`, which
+   would also fade the caret and behave differently per browser. Measured
+   against the field's composited background: typed text ~13.3:1 (light) and
+   ~14.4:1 (dark); this lands at 4.6:1 and 5.5:1 — roughly a third the weight,
+   plainly lighter, and still clear of the 4.5:1 AA floor the rest of the site
+   holds to. Going lighter (65% → 3.3:1) drops under it. */
 .gs-input::placeholder {
-  color: var(--text-dim);
-  opacity: 1; /* was 0.75, which pushed placeholders under the legibility line */
+  color: color-mix(in srgb, var(--text-dim) 80%, transparent);
+  opacity: 1; /* Firefox defaults this to 0.54 — pin it so the mix is exact */
 }
 .gs-input:hover {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--field-border));
@@ -1089,6 +1114,101 @@ html.lenis body {
   }
 }
 
+/* ---- travelling edge light (hover) ---------------------------------------
+   ADDITIVE. This is a separate overlay element — it does not touch
+   .glass-sheen's rim (::before) or its pointer reflection (::after), both of
+   which keep working exactly as before. It simply layers a bright arc that
+   orbits the card's outline, which is what sells the "thick glass edge" read.
+
+   Registering the angle as a real <angle> lets it interpolate; an unregistered
+   custom property would jump between keyframes instead of sweeping. Where
+   @property is unsupported the gradient still paints, just without motion. */
+@property --glow-a {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.glass-glow__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 320ms ease;
+  /* The ring: a band cut out of a full-size conic gradient.
+     2.2px rather than 1.4 — a hairline reads as an artefact at this radius,
+     while a band you can actually see reads as the lit edge of thick glass.
+     The travelling arc keeps a long, soft falloff on both sides so it fades
+     into the rim instead of ending on a hard edge. */
+  padding: 2.2px;
+  /* No accent anywhere in here — the moment this carries the brand purple it
+     stops reading as a reflection and starts reading as a neon border. It is
+     a light source sweeping the rim: a dark refraction lead-in, a tight white
+     core, then a long soft falloff. */
+  background: conic-gradient(
+    from var(--glow-a),
+    transparent 0deg,
+    transparent 172deg,
+    var(--glow-shade) 214deg,
+    var(--glow-warm) 248deg,
+    var(--glow-hot) 259deg,
+    var(--glow-hot) 265deg,
+    var(--glow-warm) 278deg,
+    transparent 322deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  /* GPU: the angle animation is a PAINT animation, not a transform, so the
+     gradient is re-rasterised each frame. Paint containment keeps that
+     repaint inside this overlay instead of dirtying the card behind it. */
+  contain: paint;
+}
+
+/* Buttons: same light, dialled down — thinner band and lower opacity. It laps
+   slightly quicker than a card only because the perimeter is far shorter, so
+   at a matched duration it would crawl. Mild enough to read as a catch on the
+   rim rather than as a second CTA. */
+.glass-glow--soft > .glass-glow__ring {
+  padding: 1.5px;
+  animation-duration: 3.8s;
+}
+
+/* hover: hover — never fires on touch, where it would be stuck on after a tap */
+@media (hover: hover) {
+  .glass-glow:hover > .glass-glow__ring {
+    opacity: 1;
+    /* A slow, unhurried lap — the light should drift around the edge like a
+       reflection tracking across glass, not race it. */
+    animation: glow-orbit 5.2s linear infinite;
+    /* Promoted ONLY while the light is actually running, then released — the
+       layer confines the per-frame repaint. Nothing is promoted at rest. */
+    will-change: opacity;
+  }
+  .glass-glow--soft:hover > .glass-glow__ring {
+    opacity: 0.72;
+  }
+}
+@keyframes glow-orbit {
+  to {
+    --glow-a: 360deg;
+  }
+}
+/* Weak devices and reduced-motion: keep the soft edge light, drop the travel. */
+[data-perf="low"] .glass-glow:hover > .glass-glow__ring,
+.glass-glow:hover > .glass-glow__ring:where([data-perf="low"] *) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glass-glow:hover > .glass-glow__ring {
+    animation: none;
+  }
+}
+
 /* ---- FAQ accordion --------------------------------------------------------
    The 0fr → 1fr grid-row trick: the row collapses to nothing and expands to
    exactly the content height, with the browser interpolating on its own
@@ -1097,10 +1217,11 @@ html.lenis body {
 .faq-panel {
   display: grid;
   grid-template-rows: 0fr;
-  /* 240ms, not 380: the expansion is the one part that genuinely costs layout,
-     so it is kept short and decisive. The perceived smoothness comes from the
-     content reveal below, which is compositor-only and therefore free. */
-  transition: grid-template-rows 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* 200ms: the expansion is the one part that genuinely costs layout, so it is
+     kept short and decisive rather than stretched out — a long layout
+     animation just gives jank more time to show. The smoothness you actually
+     read comes from the content reveal below, which is compositor-only. */
+  transition: grid-template-rows 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .faq-panel--open {
   grid-template-rows: 1fr;
@@ -1118,14 +1239,14 @@ html.lenis body {
    doing, and it is what the eye actually reads as the animation. */
 .faq-panel__inner > * {
   opacity: 0;
-  transform: translate3d(0, -6px, 0);
-  transition: opacity 170ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, -5px, 0);
+  transition: opacity 150ms ease, transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .faq-panel--open .faq-panel__inner > * {
   opacity: 1;
   transform: translate3d(0, 0, 0);
   /* slight lead-in so the text arrives just after the row starts opening */
-  transition-delay: 60ms;
+  transition-delay: 40ms;
 }
 @media (prefers-reduced-motion: reduce) {
   .faq-panel,
@@ -1134,16 +1255,25 @@ html.lenis body {
   }
 }
 
-/* Freeze a glass panel's backdrop while its own height is animating.
-   backdrop-filter re-samples the entire backdrop whenever the element's
-   geometry changes, so a growing card re-blurs every frame. Applied for the
-   length of the transition only (see Help.tsx).
+/* Freeze every glass backdrop while the page is mid-reflow (the FAQ accordion
+   expanding). A backdrop-filter re-samples its whole backdrop whenever the
+   content behind it moves, so an animating height re-blurs EVERY on-screen
+   panel each frame — the card itself, the section around it and the floating
+   navbar. Same mechanism as the data-modal-open rule above.
 
-   ONLY the blur is dropped — the fill is left alone. Swapping it to
-   --glass-solid would take the surface from alpha 0.2 to 0.92 and flash
-   visibly on every toggle; removing the blur alone is close to invisible
-   because the only thing behind this card is the soft ambient gradient. */
-.glass.glass-frozen {
+   ONLY the blur is dropped — fills, borders and sheens are untouched. Swapping
+   the fill to --glass-solid would take a surface from alpha 0.2 to 0.92 and
+   flash on every toggle; removing the blur alone is close to invisible,
+   because what sits behind these panels is the soft ambient gradient and
+   blurring a smooth gradient is nearly a no-op. */
+[data-glass-freeze] .glass,
+/* .nav-floating.glass has to be named explicitly: it is an equal-specificity
+   (0,2,0) selector defined later in this file, so it would otherwise win and
+   keep re-blurring — measured, it was the one panel still blurring. The
+   data-modal-open rule above lists it for exactly the same reason. */
+[data-glass-freeze] .nav-floating.glass,
+[data-glass-freeze] .sphere-glass,
+[data-glass-freeze] .glass-refract {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
