@@ -1198,11 +1198,21 @@ html.lenis body {
     --glow-a: 360deg;
   }
 }
-/* Weak devices and reduced-motion: keep the soft edge light, drop the travel. */
-[data-perf="low"] .glass-glow:hover > .glass-glow__ring,
-.glass-glow:hover > .glass-glow__ring:where([data-perf="low"] *) {
-  animation: none;
-}
+/* NOT gated on [data-perf="low"].
+   It used to be, and that is why the travel vanished in production: the tier
+   flips to "low" on touch, on any viewport under 900px, on <=4 cores/4GB, on
+   save-data — and permanently if a live FPS probe ever reads under 45fps,
+   which it easily can 1.2s into a cold deployed load while assets are still
+   arriving. Locally, warm, it stays "high", so the effect only disappeared
+   once shipped.
+
+   The tier exists to shed the genuinely heavy work — full-screen backdrop
+   blurs and multi-megapixel ambient lights. This is none of those: one hovered
+   card at a time, ~0.14 MPx, paint-contained, promoted only while running and
+   released on leave. It does not belong behind that gate.
+
+   Reduced-motion is a different thing — a user preference, not a capability
+   guess — so that one stays. */
 @media (prefers-reduced-motion: reduce) {
   .glass-glow:hover > .glass-glow__ring {
     animation: none;
