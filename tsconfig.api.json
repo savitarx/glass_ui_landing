@@ -1,0 +1,22 @@
+/* The main tsconfig only includes `src`, so everything under api/ was shipped
+   completely unchecked — esbuild strips types without verifying them. A stale
+   variable reference in a rarely-hit error branch got through that way and
+   would have thrown at runtime, in the exact path you only reach when
+   something is already going wrong. Checked as part of `npm run build`. */
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowJs": false
+  },
+  "include": ["api/**/*.ts"]
+}

@@ -32,10 +32,13 @@ async function getKeys(): Promise<Jwk[]> {
   return cache.keys;
 }
 
-const b64urlToBytes = (s: string): Uint8Array => {
+/* Return type pinned to Uint8Array<ArrayBuffer>. Under TS 5.7+ a bare
+   Uint8Array is Uint8Array<ArrayBufferLike>, which crypto.subtle rejects
+   because it could be backed by a SharedArrayBuffer. It never is here. */
+const b64urlToBytes = (s: string): Uint8Array<ArrayBuffer> => {
   const pad = s.length % 4 ? "=".repeat(4 - (s.length % 4)) : "";
   const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
-  const out = new Uint8Array(bin.length);
+  const out = new Uint8Array(new ArrayBuffer(bin.length));
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 };

@@ -29,33 +29,88 @@ const env = (k: string): string =>
   ] ?? "";
 
 let cached: Transporter | null = null;
+let cachedPort = 0;
 
 /**
- * One reused connection pool. Building a transport per request means a fresh
- * TCP + TLS + AUTH handshake every time, which is slow and is what trips
- * provider rate limits.
+ * Ports to try, in order.
+ *
+ * Hosts block outbound SMTP selectively rather than wholesale — 465 is the most
+ * commonly blocked, 587 often survives, and 2525 (an unofficial submission port
+ * most relays also listen on) is rarely touched. Trying one port and giving up
+ * meant a hard failure on a network where another port would have worked.
+ *
+ * An explicit SMTP_PORT is honoured exactly and never second-guessed.
  */
-function transport(): Transporter | null {
+function candidatePorts(): number[] {
+  const explicit = Number(env("SMTP_PORT") || 0);
+  if (explicit) return [explicit];
+  return [465, 587, 2525];
+}
+
+function build(port: number): Transporter | null {
   const user = env("SMTP_USER");
   const pass = env("SMTP_PASS");
   if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    host: env("SMTP_HOST") || "smtp.gmail.com",
+    port,
+    // 465 is implicit TLS; 587 and 2525 upgrade via STARTTLS
+    secure: port === 465,
+    auth: { user, pass },
+    pool: true,
+    maxConnections: 2,
+    /* Deliberately short. A blocked port does not refuse the connection, it
+       black-holes it — so a long timeout just means the visitor watches a
+       spinner for half a minute before being told it failed. Failing fast
+       leaves room to try the next port and still answer quickly. */
+    connectionTimeout: 7_000,
+    greetingTimeout: 5_000,
+    socketTimeout: 15_000,
+  });
+}
 
-  if (!cached) {
-    const port = Number(env("SMTP_PORT") || 465);
-    cached = nodemailer.createTransport({
-      host: env("SMTP_HOST") || "smtp.gmail.com",
-      port,
-      // 465 is implicit TLS; 587 upgrades via STARTTLS
-      secure: port === 465,
-      auth: { user, pass },
-      pool: true,
-      maxConnections: 2,
-      connectionTimeout: 12_000,
-      greetingTimeout: 8_000,
-      socketTimeout: 20_000,
-    });
+/** True when the failure is "could not get a connection", not "was rejected". */
+function isUnreachable(e: unknown): boolean {
+  const err = e as { code?: string; message?: string };
+  const code = String(err?.code ?? "");
+  return (
+    code === "ETIMEDOUT" ||
+    code === "ESOCKET" ||
+    code === "ECONNREFUSED" ||
+    code === "ECONNRESET" ||
+    /timeout|timed out/i.test(String(err?.message ?? ""))
+  );
+}
+
+/**
+ * A working transport, reused once found. Building one per request means a
+ * fresh TCP + TLS + AUTH handshake every time, which is slow and trips
+ * provider rate limits.
+ */
+async function transport(): Promise<Transporter | null> {
+  if (cached) return cached;
+
+  let lastErr: unknown = null;
+  for (const port of candidatePorts()) {
+    const tx = build(port);
+    if (!tx) return null; // no credentials — nothing to try
+    try {
+      await tx.verify();
+      cached = tx;
+      cachedPort = port;
+      if (port !== candidatePorts()[0]) {
+        console.warn(`[mail] port ${candidatePorts()[0]} unreachable; using ${port}`);
+      }
+      return cached;
+    } catch (e) {
+      lastErr = e;
+      tx.close();
+      // only a network-level failure is worth trying another port for; bad
+      // credentials will fail identically everywhere
+      if (!isUnreachable(e)) throw e;
+    }
   }
-  return cached;
+  throw lastErr ?? new Error("no SMTP port reachable");
 }
 
 /**
@@ -72,27 +127,38 @@ export async function verifySmtp(): Promise<{
   port: number;
 }> {
   const host = env("SMTP_HOST") || "smtp.gmail.com";
-  const port = Number(env("SMTP_PORT") || 465);
-  const tx = transport();
-  if (!tx) {
-    return { status: "not-configured", hint: "SMTP_USER / SMTP_PASS are unset.", host, port };
+  const tried = candidatePorts();
+  if (!env("SMTP_USER") || !env("SMTP_PASS")) {
+    return {
+      status: "not-configured",
+      hint: "SMTP_USER / SMTP_PASS are unset.",
+      host,
+      port: tried[0],
+    };
   }
   try {
-    await tx.verify();
-    return { status: "ok", hint: "Connected and authenticated.", host, port };
+    // walks the candidate ports and caches whichever one connects
+    await transport();
+    return {
+      status: "ok",
+      hint: `Connected and authenticated on port ${cachedPort}.`,
+      host,
+      port: cachedPort,
+    };
   } catch (e) {
     const err = e as { code?: string; responseCode?: number; message?: string };
     const code = String(err?.code ?? "");
     const msg = String(err?.message ?? "");
 
-    if (code === "ETIMEDOUT" || code === "ESOCKET" || code === "ECONNREFUSED") {
+    if (isUnreachable(e)) {
       return {
         status: "unreachable",
         hint:
-          `Could not open a connection to ${host}:${port}. Hosts commonly block ` +
-          `outbound SMTP; try SMTP_PORT=587, or a provider that offers port 2525.`,
+          `No connection to ${host} on ${tried.join(", ")}. This host blocks ` +
+          `outbound SMTP. Use a relay that offers port 2525, or a plan without ` +
+          `the block — the credentials are not the problem.`,
         host,
-        port,
+        port: tried[0],
       };
     }
     if (err?.responseCode === 535 || /invalid login|username and password/i.test(msg)) {
@@ -102,13 +168,18 @@ export async function verifySmtp(): Promise<{
           "The server was reached but rejected the credentials. For Gmail this " +
           "must be an App Password, not the account password.",
         host,
-        port,
+        port: tried[0],
       };
     }
     if (code === "EDNS" || /getaddrinfo/i.test(msg)) {
-      return { status: "dns-failed", hint: `Could not resolve ${host}.`, host, port };
+      return { status: "dns-failed", hint: `Could not resolve ${host}.`, host, port: tried[0] };
     }
-    return { status: "failed", hint: "Connection failed for an unrecognised reason.", host, port };
+    return {
+      status: "failed",
+      hint: "Connection failed for an unrecognised reason.",
+      host,
+      port: tried[0],
+    };
   }
 }
 
@@ -132,13 +203,36 @@ export type MailInput = {
  * retrying would just fail identically. Only the former is worth a second go.
  */
 export async function sendMail(m: MailInput): Promise<MailResult> {
-  const tx = transport();
-  if (!tx) {
+  if (!env("SMTP_USER") || !env("SMTP_PASS")) {
     return {
       ok: false,
       status: 503,
       error: "Mail is not configured on the server.",
       detail: "SMTP_USER and SMTP_PASS are unset.",
+    };
+  }
+
+  let tx: Transporter;
+  try {
+    tx = (await transport())!;
+  } catch (e) {
+    /* No port reachable. Say so precisely rather than "try again" — retrying a
+       blocked network path never succeeds, and the visitor should be told to
+       use the address instead. */
+    if (isUnreachable(e)) {
+      return {
+        ok: false,
+        status: 502,
+        error: "We couldn't send that just now. Please email us directly.",
+        detail: `no SMTP port reachable (${candidatePorts().join(", ")}) — host likely blocks outbound SMTP`,
+      };
+    }
+    const err = e as { message?: string };
+    return {
+      ok: false,
+      status: 502,
+      error: "We couldn't send that just now. Please email us directly.",
+      detail: err?.message ?? String(e),
     };
   }
 

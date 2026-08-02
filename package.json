@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && npm run build:api",
+    "build": "tsc -b && tsc -p tsconfig.api.json && vite build && npm run build:api",
     "preview": "vite preview",
     "build:api": "esbuild api/inquiry.ts --bundle --platform=node --format=esm --target=node18 --external:nodemailer --outfile=dist-server/inquiry.mjs",
     "start": "node server.mjs"
@@ -23,6 +23,7 @@
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
