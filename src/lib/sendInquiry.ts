@@ -110,16 +110,35 @@ export async function sendInquiry(
       };
     }
 
-    if (res.ok) return { ok: true };
+    /* Read the body ONCE — it is a stream and cannot be consumed twice. */
+    const contentType = res.headers.get("content-type") ?? "";
+    const isJson = contentType.includes("application/json");
+    let data: { ok?: boolean; error?: string } | null = null;
+    if (isJson) {
+      try {
+        data = (await res.json()) as { ok?: boolean; error?: string };
+      } catch {
+        data = null;
+      }
+    }
+
+    /* Success requires the API's OWN json acknowledgement — not merely a 2xx.
+       `if (res.ok)` alone was a real trap: a static host with an SPA rewrite
+       answers POST /api/inquiry with 200 and index.html, so the form reported
+       "sent" while no mail was ever dispatched. Anything that is not
+       {"ok":true} in a JSON body means we did not reach the handler. */
+    if (res.ok) {
+      if (data?.ok === true) return { ok: true };
+      return {
+        ok: false,
+        message:
+          `The contact service isn't running at this address, so nothing was sent. ` +
+          `Please email us directly at ${RECIPIENT}.`,
+      };
+    }
 
     // the endpoint answered but refused — surface its reason when it gave one
-    let message = "";
-    try {
-      const data = (await res.json()) as { error?: string };
-      message = data?.error ?? "";
-    } catch {
-      /* non-JSON response — see the 404 note below */
-    }
+    const message = data?.error ?? "";
     if (res.status === 422) {
       return { ok: false, message: message || "Please check your name and email." };
     }

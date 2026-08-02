@@ -23,9 +23,24 @@ import { readBody, toWebRequest, sendWebResponse } from "./api/node-adapter.mjs"
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
 const DIST = join(ROOT, "dist");
 const PORT = process.env.PORT || 3000;
+const STARTED_AT = new Date().toISOString();
 
-// esbuild bundles api/inquiry.ts here during `npm run build` (see build:api).
-const { default: inquiry } = await import("./dist-server/inquiry.mjs");
+/* esbuild bundles api/inquiry.ts here during `npm run build` (see build:api).
+   Loaded defensively: a bare top-level await import would throw and kill the
+   process if the bundle were missing, and a dead process on a host looks
+   identical to "not deployed" — the exact ambiguity that makes this hard to
+   diagnose. Instead we boot, serve the site, and report the fault. */
+let inquiry = null;
+let apiLoadError = null;
+try {
+  ({ default: inquiry } = await import("./dist-server/inquiry.mjs"));
+} catch (err) {
+  apiLoadError = String(err?.message ?? err);
+  console.error(
+    "[fatal] could not load dist-server/inquiry.mjs — did `npm run build` run?\n       ",
+    apiLoadError
+  );
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -84,15 +99,40 @@ const server = createServer(async (req, res) => {
         res.writeHead(405, { allow: "POST" }).end();
         return;
       }
+      if (!inquiry) {
+        res.writeHead(503, { "content-type": "application/json" });
+        res.end(
+          JSON.stringify({ error: "Mail is not configured on the server." })
+        );
+        return;
+      }
       const body = await readBody(req);
       const webRes = await inquiry(toWebRequest(req, body, PORT));
       await sendWebResponse(res, webRes);
       return;
     }
 
-    // simple liveness endpoint for Render's health check
+    /* Liveness + self-diagnosis. Booleans only — never the values.
+       Open this in a browser to answer, in one shot, whether THIS server is
+       the thing answering your domain and whether it has what it needs. */
     if (url.pathname === "/healthz") {
-      res.writeHead(200, { "content-type": "text/plain" }).end("ok");
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(
+        JSON.stringify(
+          {
+            server: "invisos",
+            ok: true,
+            apiHandlerLoaded: !!inquiry,
+            apiLoadError,
+            smtpConfigured: !!(process.env.SMTP_USER && process.env.SMTP_PASS),
+            firebaseProjectIdSet: !!process.env.FIREBASE_PROJECT_ID,
+            node: process.version,
+            startedAt: STARTED_AT,
+          },
+          null,
+          1
+        )
+      );
       return;
     }
 
